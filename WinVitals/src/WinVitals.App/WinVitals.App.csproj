@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>WinVitals</AssemblyName>
+    <RootNamespace>WinVitals.App</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="LiveChartsCore.SkiaSharpView.WPF" Version="2.0.0-rc5.4" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+    <PackageReference Include="Serilog" Version="4.2.0" />
+    <PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+    <PackageReference Include="Velopack" Version="0.0.942" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WinVitals.Core\WinVitals.Core.csproj" />
+    <ProjectReference Include="..\WinVitals.Services\WinVitals.Services.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Docs\**\*.md" />
+  </ItemGroup>
+</Project>

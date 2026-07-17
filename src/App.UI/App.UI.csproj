@@ -1,0 +1,53 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\App.Core\App.Core.csproj" />
+    <ProjectReference Include="..\App.Storage\App.Storage.csproj" />
+    <ProjectReference Include="..\App.Scanner\App.Scanner.csproj" />
+    <ProjectReference Include="..\App.Cleaner\App.Cleaner.csproj" />
+    <ProjectReference Include="..\App.Performance\App.Performance.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>AppUI</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Authors>Đào Văn Phong</Authors>
+    <Company>Đào Văn Phong</Company>
+    <Version>1.0.0.0</Version>
+    <FileVersion>1.0.0.0</FileVersion>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <Description>Windows Health Manager - Trình dọn dẹp thông minh cho developer và power user Việt Nam</Description>
+    <Copyright>© 2025 Đào Văn Phong — MIT License</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="..\..\rules\safe-clean.json">
+      <Link>rules\safe-clean.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\rules\deep-clean.json">
+      <Link>rules\deep-clean.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\rules\developer-clean.json">
+      <Link>rules\developer-clean.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\rules\protected-paths.json">
+      <Link>rules\protected-paths.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Serilog.Extensions.Hosting" Version="10.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+  </ItemGroup>
+
+</Project>

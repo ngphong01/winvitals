@@ -1,0 +1,72 @@
+[
+  {
+    "id": "temp_files",
+    "name": "Temp Files",
+    "description": "Temporary files safe to delete",
+    "pathPatterns": ["**\\Temp\\**", "**\\Temporary**", "**\\AppData\\Local\\Temp\\**"],
+    "extensions": [".tmp", ".temp", ".log"],
+    "minSizeBytes": 0,
+    "maxAgeDays": 0,
+    "action": "SafeDelete",
+    "risk": "Safe",
+    "priority": 80,
+    "enabled": true,
+    "cleanLevel": "Quick"
+  },
+  {
+    "id": "recycle_bin",
+    "name": "Recycle Bin",
+    "description": "Files in Recycle Bin",
+    "pathPatterns": ["**\\$Recycle.Bin\\**"],
+    "extensions": [],
+    "minSizeBytes": 0,
+    "maxAgeDays": 0,
+    "action": "SafeDelete",
+    "risk": "Safe",
+    "priority": 85,
+    "enabled": true,
+    "cleanLevel": "Quick"
+  },
+  {
+    "id": "crash_dumps",
+    "name": "Crash Dumps",
+    "description": "Windows and application crash dumps",
+    "pathPatterns": ["**\\CrashDumps\\**", "**\\Minidump\\**"],
+    "extensions": [".dmp", ".mdmp", ".hdmp"],
+    "minSizeBytes": 0,
+    "maxAgeDays": 0,
+    "action": "SafeDelete",
+    "risk": "Safe",
+    "priority": 80,
+    "enabled": true,
+    "cleanLevel": "Quick"
+  },
+  {
+    "id": "prefetch",
+    "name": "Prefetch",
+    "description": "Windows Prefetch cache",
+    "pathPatterns": ["**\\Windows\\Prefetch\\**"],
+    "extensions": [".pf"],
+    "minSizeBytes": 0,
+    "maxAgeDays": 7,
+    "action": "SafeDelete",
+    "risk": "Low",
+    "priority": 70,
+    "enabled": true,
+    "cleanLevel": "Quick"
+  },
+  {
+    "id": "thumbnails",
+    "name": "Thumbnail Cache",
+    "description": "Windows thumbnail cache",
+    "pathPatterns": ["**\\Explorer\\thumbcache**", "**\\thumbnails\\**"],
+    "extensions": [".db"],
+    "minSizeBytes": 0,
+    "maxAgeDays": 0,
+    "action": "SafeDelete",
+    "risk": "Low",
+    "priority": 65,
+    "enabled": true,
+    "cleanLevel": "Quick"
+  }
+]

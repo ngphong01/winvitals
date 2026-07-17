@@ -1,0 +1,342 @@
+<Page x:Class="WinVitals.App.Views.SettingsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="clr-namespace:WinVitals.App.ViewModels"
+      xmlns:svc="clr-namespace:WinVitals.App.Services"
+      Title="Settings">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="24"
+                    MaxWidth="900"
+                    HorizontalAlignment="Left">
+
+            <TextBlock Text="{svc:Loc Settings_Title}"
+                       FontSize="28"
+                       FontWeight="SemiBold"
+                       
+                       Margin="0,0,0,16"/>
+
+            <!-- Appearance -->
+            <Border Style="{StaticResource Card}"
+                    Margin="0,0,0,12"
+                    Padding="20">
+                <StackPanel>
+                    <TextBlock Text="{svc:Loc Settings_Appearance}"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               
+                               Margin="0,0,0,12"/>
+                    <Grid Margin="0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="220"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{svc:Loc Settings_Theme}"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource AppTextMuted}"/>
+                        <ComboBox Grid.Column="1"
+                                  ItemsSource="{Binding AllThemes}"
+                                  SelectedItem="{Binding SelectedTheme}"
+                                  Width="200"
+                                  HorizontalAlignment="Left"/>
+                    </Grid>
+                    <Grid Margin="0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="220"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{svc:Loc Settings_Language}"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource AppTextMuted}"/>
+                        <ComboBox Grid.Column="1"
+                                  ItemsSource="{Binding AllLanguages}"
+                                  SelectedItem="{Binding SelectedLanguage}"
+                                  DisplayMemberPath="Name"
+                                  Width="200"
+                                  HorizontalAlignment="Left"/>
+                    </Grid>
+                    <CheckBox Content="{svc:Loc Settings_ReduceMotion}"
+                              IsChecked="{Binding ReduceMotion}"
+                              Margin="0,12,0,0"
+                              Foreground="{DynamicResource AppTextMuted}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Quarantine -->
+            <Border Style="{StaticResource Card}"
+                    Margin="0,0,0,12"
+                    Padding="20">
+                <StackPanel>
+                    <TextBlock Text="{svc:Loc Settings_Quarantine}"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               
+                               Margin="0,0,0,12"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="220"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="80"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{svc:Loc Settings_RetentionPeriod}"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource AppTextMuted}"/>
+                        <Slider Grid.Column="1"
+                                Minimum="3"
+                                Maximum="90"
+                                Value="{Binding RetentionDays}"
+                                TickFrequency="7"
+                                IsSnapToTickEnabled="True"
+                                VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="2"
+                                   HorizontalAlignment="Right"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource AppTextMuted}">
+                            <Run Text="{Binding RetentionDays}"/><Run Text="{svc:Loc Settings_Days}"/>
+                        </TextBlock>
+                    </Grid>
+                    <Grid Margin="0,12,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="220"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="80"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{svc:Loc Settings_MaxQuarantineSize}"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource AppTextMuted}"/>
+                        <Slider Grid.Column="1"
+                                Minimum="1"
+                                Maximum="100"
+                                Value="{Binding MaxQuarantineGb}"
+                                TickFrequency="5"
+                                IsSnapToTickEnabled="True"
+                                VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="2"
+                                   HorizontalAlignment="Right"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource AppTextMuted}">
+                            <Run Text="{Binding MaxQuarantineGb, StringFormat={}{0:0}}"/><Run Text="{svc:Loc Settings_GB}"/>
+                        </TextBlock>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Exclusions -->
+            <Border Style="{StaticResource Card}"
+                    Margin="0,0,0,12"
+                    Padding="20">
+                <StackPanel>
+                    <TextBlock Text="{svc:Loc Settings_ExcludedPaths}"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               
+                               Margin="0,0,0,8"/>
+                    <TextBlock Foreground="{DynamicResource AppTextMuted}"
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,12"
+                               Text="{svc:Loc Settings_ExcludedHint}"/>
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0"
+                                 Text="{Binding NewExclusion, UpdateSourceTrigger=PropertyChanged}"
+                                 
+                                 BorderThickness="0"
+                                 Padding="8,4"/>
+                        <Button Grid.Column="1"
+                                Content="{svc:Loc Settings_Browse}"
+                                Style="{StaticResource SecondaryBtn}"
+                                Margin="8,0,0,0"
+                                Command="{Binding BrowseFolderExclusionCommand}"
+                                Padding="10,6"/>
+                        <Button Grid.Column="2"
+                                Content="{svc:Loc Settings_Add}"
+                                Style="{StaticResource PrimaryBtn}"
+                                Margin="8,0,0,0"
+                                Command="{Binding AddExclusionCommand}"
+                                Padding="10,6"/>
+                    </Grid>
+                    <ItemsControl ItemsSource="{Binding Exclusions}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding}"
+                                               VerticalAlignment="Center"
+                                               
+                                               FontFamily="Cascadia Mono, Consolas"/>
+                                    <Button Grid.Column="1"
+                                            Content="âœ•"
+                                            Style="{StaticResource SecondaryBtn}"
+                                            Padding="6,2"
+                                            Command="{Binding DataContext.RemoveExclusionCommand,
+                                                RelativeSource={RelativeSource AncestorType=Page}}"
+                                            CommandParameter="{Binding}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <!-- Scheduling -->
+            <Border Style="{StaticResource Card}"
+                    Margin="0,0,0,12"
+                    Padding="20">
+                <StackPanel>
+                    <TextBlock Text="{svc:Loc Settings_AutoCleanup}"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               
+                               Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="220"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{svc:Loc Settings_Frequency}"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource AppTextMuted}"/>
+                        <ComboBox Grid.Column="1"
+                                  ItemsSource="{Binding AllFrequencies}"
+                                  SelectedItem="{Binding ScheduleFrequency}"
+                                  Width="200"
+                                  HorizontalAlignment="Left"/>
+                    </Grid>
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="220"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{svc:Loc Settings_Preset}"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource AppTextMuted}"/>
+                        <ComboBox Grid.Column="1"
+                                  ItemsSource="{Binding AllPresets}"
+                                  SelectedItem="{Binding SchedulePreset}"
+                                  Width="200"
+                                  HorizontalAlignment="Left"/>
+                    </Grid>
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="220"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{svc:Loc Settings_TimeOfDay}"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource AppTextMuted}"/>
+                        <StackPanel Grid.Column="1"
+                                    Orientation="Horizontal">
+                            <ComboBox ItemsSource="{x:Static local:SettingsViewModel.Hours}"
+                                      SelectedItem="{Binding ScheduleHour}"
+                                      Width="70"/>
+                            <TextBlock Text=":"
+                                       VerticalAlignment="Center"
+                                       Margin="4,0"
+                                       Foreground="{DynamicResource AppTextMuted}"/>
+                            <ComboBox ItemsSource="{x:Static local:SettingsViewModel.Minutes}"
+                                      SelectedItem="{Binding ScheduleMinute}"
+                                      Width="70"/>
+                        </StackPanel>
+                    </Grid>
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="220"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Day of week"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource AppTextMuted}"/>
+                        <ComboBox Grid.Column="1"
+                                  ItemsSource="{Binding AllDays}"
+                                  SelectedItem="{Binding ScheduleDayOfWeek}"
+                                  Width="200"
+                                  HorizontalAlignment="Left"/>
+                    </Grid>
+                    <CheckBox Content="{svc:Loc Settings_AutoConfirm}"
+                              IsChecked="{Binding ScheduleAutoConfirm}"
+                              Margin="0,8,0,0"
+                              Foreground="{DynamicResource AppTextMuted}"/>
+                    <StackPanel Orientation="Horizontal"
+                                Margin="0,12,0,0">
+                        <TextBlock Text="{Binding NextRunText}"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource AppTextMuted}"/>
+                        <Button Content="{svc:Loc Action_RunNow}"
+                                Style="{StaticResource PrimaryBtn}"
+                                Margin="16,0,0,0"
+                                Command="{Binding RunScheduledNowCommand}"
+                                Padding="10,6"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Startup -->
+            <Border Style="{StaticResource Card}"
+                    Margin="0,0,0,12"
+                    Padding="20">
+                <StackPanel>
+                    <TextBlock Text="{svc:Loc Settings_Startup}"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               
+                               Margin="0,0,0,12"/>
+                    <CheckBox Content="{svc:Loc Settings_LaunchAtStartup}"
+                              IsChecked="{Binding LaunchAtStartup}"
+                              Foreground="{DynamicResource AppTextMuted}"/>
+                    <CheckBox Content="{svc:Loc Settings_StartMinimized}"
+                              IsChecked="{Binding StartMinimized}"
+                              Margin="0,8,0,0"
+                              Foreground="{DynamicResource AppTextMuted}"/>
+                    <CheckBox Content="{svc:Loc Settings_MinimizeToTray}"
+                              IsChecked="{Binding MinimizeToTray}"
+                              Margin="0,8,0,0"
+                              Foreground="{DynamicResource AppTextMuted}"/>
+                </StackPanel>
+            </Border>
+
+            <TextBlock Foreground="{DynamicResource AppTextMuted}"
+                       Margin="0,8,0,32"
+                       HorizontalAlignment="Center">
+                WinVitals v0.5 â€¢ Settings are saved automatically
+            </TextBlock>
+
+            <!-- Privacy -->
+            <Border Style="{StaticResource Card}"
+                    Margin="0,0,0,12"
+                    Padding="20">
+                <StackPanel>
+                    <TextBlock Text="{svc:Loc Settings_Privacy}"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               
+                               Margin="0,0,0,12"/>
+                    <CheckBox IsChecked="{Binding EnableTelemetry}"
+                              >
+                        <TextBlock TextWrapping="Wrap"
+                                   >
+                            Send anonymous usage statistics
+                            <LineBreak/>
+                            <Run FontSize="11"
+                                 Foreground="{DynamicResource AppTextMuted}">
+                                Helps us improve WinVitals. No file paths, content, or personal data are ever collected.
+                            </Run>
+                        </TextBlock>
+                    </CheckBox>
+                    <Button Content="{svc:Loc Settings_PrivacyPolicy}"
+                            Style="{StaticResource SecondaryBtn}"
+                            Command="{Binding OpenPrivacyPolicyCommand}"
+                            Margin="0,10,0,0"
+                            HorizontalAlignment="Left"
+                            Padding="10,6"/>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>

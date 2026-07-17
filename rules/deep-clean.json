@@ -1,0 +1,72 @@
+[
+  {
+    "id": "win_update_cache",
+    "name": "Windows Update Cache",
+    "description": "Old Windows Update download cache",
+    "pathPatterns": ["**\\Windows\\SoftwareDistribution\\Download\\**"],
+    "extensions": [],
+    "minSizeBytes": 0,
+    "maxAgeDays": 0,
+    "action": "WarnDelete",
+    "risk": "Medium",
+    "priority": 60,
+    "enabled": true,
+    "cleanLevel": "Deep"
+  },
+  {
+    "id": "old_installers",
+    "name": "Old Installers",
+    "description": "Setup/installer files older than 30 days",
+    "pathPatterns": ["**\\Downloads\\**"],
+    "extensions": [".msi", ".exe"],
+    "minSizeBytes": 104857600,
+    "maxAgeDays": 30,
+    "action": "WarnDelete",
+    "risk": "Medium",
+    "priority": 55,
+    "enabled": true,
+    "cleanLevel": "Deep"
+  },
+  {
+    "id": "large_archives",
+    "name": "Large Archives",
+    "description": "Large archive files",
+    "pathPatterns": ["**\\Downloads\\**", "**\\Desktop\\**"],
+    "extensions": [".zip", ".rar", ".7z", ".iso", ".tar", ".gz"],
+    "minSizeBytes": 524288000,
+    "maxAgeDays": 60,
+    "action": "WarnDelete",
+    "risk": "Medium",
+    "priority": 50,
+    "enabled": true,
+    "cleanLevel": "Deep"
+  },
+  {
+    "id": "unknown_folders",
+    "name": "Unknown Folders",
+    "description": "Folders without matching installed application",
+    "pathPatterns": ["**\\Program Files\\**", "**\\Program Files (x86)\\**"],
+    "extensions": [],
+    "minSizeBytes": 104857600,
+    "maxAgeDays": 90,
+    "action": "WarnDelete",
+    "risk": "High",
+    "priority": 40,
+    "enabled": true,
+    "cleanLevel": "Deep"
+  },
+  {
+    "id": "app_leftovers",
+    "name": "App Leftovers",
+    "description": "Leftover folders from uninstalled apps",
+    "pathPatterns": ["**\\AppData\\Local\\**", "**\\AppData\\Roaming\\**"],
+    "extensions": [],
+    "minSizeBytes": 52428800,
+    "maxAgeDays": 60,
+    "action": "Quarantine",
+    "risk": "High",
+    "priority": 45,
+    "enabled": true,
+    "cleanLevel": "Deep"
+  }
+]

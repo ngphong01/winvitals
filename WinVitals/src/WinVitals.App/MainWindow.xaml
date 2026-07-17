@@ -1,0 +1,104 @@
+<Window x:Class="WinVitals.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:svc="clr-namespace:WinVitals.App.Services"
+        Title="WinVitals"
+        Height="780"
+        Width="1200"
+        Background="{DynamicResource AppBackground}"
+        WindowStartupLocation="CenterScreen">
+        <Grid>
+                <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Sidebar -->
+                <Border Grid.Column="0"
+                        Background="{DynamicResource AppSidebar}">
+                        <StackPanel Margin="12">
+                                <TextBlock Text="WinVitals"
+                                           FontSize="18"
+                                           FontWeight="Bold"
+                                           Margin="8,12,8,2"/>
+                                <TextBlock Text="by Đào Văn Phong"
+                                           FontSize="10"
+                                           Foreground="#585B70"
+                                           Margin="8,0,8,24"/>
+                                <Button Content="{svc:Loc Nav.Dashboard}"
+                                        Tag="Dashboard"
+                                        Style="{StaticResource NavBtn}"
+                                        Click="Nav_Click"
+                                        Margin="0,2"/>
+                                <Button Content="{svc:Loc Nav.Scan}"
+                                        Tag="Scan"
+                                        Style="{StaticResource NavBtn}"
+                                        Click="Nav_Click"
+                                        Margin="0,2"/>
+                                <Button Content="{svc:Loc Nav.Clean}"
+                                        Tag="Clean"
+                                        Style="{StaticResource NavBtn}"
+                                        Click="Nav_Click"
+                                        Margin="0,2"/>
+                                <Button Content="{svc:Loc Nav.Performance}"
+                                        Tag="Performance"
+                                        Style="{StaticResource NavBtn}"
+                                        Click="Nav_Click"
+                                        Margin="0,2"/>
+                                <Button Content="{svc:Loc Nav.Quarantine}"
+                                        Tag="Quarantine"
+                                        Style="{StaticResource NavBtn}"
+                                        Click="Nav_Click"
+                                        Margin="0,2"/>
+                                <Button Content="{svc:Loc Nav.Rules}"
+                                        Tag="Rules"
+                                        Style="{StaticResource NavBtn}"
+                                        Click="Nav_Click"
+                                        Margin="0,2"/>
+                                <Button Content="{svc:Loc Nav.Statistics}"
+                                        Tag="Statistics"
+                                        Style="{StaticResource NavBtn}"
+                                        Click="Nav_Click"
+                                        Margin="0,2"/>
+                                <Button Content="{svc:Loc Nav.Settings}"
+                                        Tag="Settings"
+                                        Style="{StaticResource NavBtn}"
+                                        Click="Nav_Click"
+                                        Margin="0,2"/>
+
+                                <Separator Margin="8,12,8,8"
+                                           Opacity="0.3"/>
+
+                                <Button Content="{svc:Loc Nav.About}"
+                                        Tag="About"
+                                        Style="{StaticResource NavBtn}"
+                                        Click="Nav_Click"
+                                        Margin="0,2"/>
+
+                                <Button Content="{svc:Loc Nav.Help}"
+                                        Tag="Help"
+                                        Style="{StaticResource NavBtn}"
+                                        Click="Nav_Click"
+                                        Margin="0,2"/>
+                                <TextBlock Text="Ctrl+K  Command palette"
+                                           FontSize="10"
+                                           Foreground="#585B70"
+                                           Margin="14,12,0,0"/>
+                        </StackPanel>
+                </Border>
+
+                <!-- Content -->
+                <Frame Grid.Column="1"
+                       x:Name="ContentFrame"
+                       NavigationUIVisibility="Hidden"
+                       Background="{DynamicResource AppBackground}"/>
+
+                <!-- Notification overlay -->
+                <StackPanel Grid.Column="1"
+                            x:Name="NotificationHost"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Bottom"
+                            Margin="0,0,24,24"
+                            Panel.ZIndex="100"/>
+        </Grid>
+</Window>

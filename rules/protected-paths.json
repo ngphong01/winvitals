@@ -1,0 +1,102 @@
+[
+  {
+    "path": "C:\\Windows\\System32",
+    "reason": "Windows system files - critical",
+    "risk": "Critical"
+  },
+  {
+    "path": "C:\\Windows\\SysWOW64",
+    "reason": "Windows 32-bit system files",
+    "risk": "Critical"
+  },
+  {
+    "path": "C:\\Windows\\WinSxS",
+    "reason": "Windows component store",
+    "risk": "Critical"
+  },
+  {
+    "path": "C:\\Windows\\System32\\drivers",
+    "reason": "System drivers",
+    "risk": "Critical"
+  },
+  {
+    "path": "C:\\Windows\\System32\\config",
+    "reason": "Windows registry hives",
+    "risk": "Critical"
+  },
+  {
+    "path": "C:\\Windows\\Installer",
+    "reason": "Windows Installer database - needed for uninstall/repair",
+    "risk": "Critical"
+  },
+  {
+    "path": "C:\\Windows\\System32\\DriverStore",
+    "reason": "Driver Store - needed for device drivers",
+    "risk": "Critical"
+  },
+  {
+    "path": "C:\\Windows\\Boot",
+    "reason": "Boot configuration",
+    "risk": "Critical"
+  },
+  {
+    "path": "C:\\Windows\\Fonts",
+    "reason": "System fonts",
+    "risk": "Critical"
+  },
+  {
+    "path": "C:\\Windows\\INF",
+    "reason": "Driver INF files",
+    "risk": "Critical"
+  },
+  {
+    "path": "C:\\Program Files",
+    "reason": "Installed applications - check before deleting",
+    "risk": "High"
+  },
+  {
+    "path": "C:\\Program Files (x86)",
+    "reason": "Installed 32-bit applications",
+    "risk": "High"
+  },
+  {
+    "path": "C:\\ProgramData\\Microsoft",
+    "reason": "Microsoft application data",
+    "risk": "High"
+  },
+  {
+    "path": "**\\Documents\\**",
+    "reason": "User documents - never auto-delete",
+    "risk": "Critical"
+  },
+  {
+    "path": "**\\Desktop\\**",
+    "reason": "User desktop - never auto-delete",
+    "risk": "Critical"
+  },
+  {
+    "path": "**\\Downloads\\**",
+    "reason": "User downloads - warn before delete",
+    "risk": "High"
+  },
+  {
+    "path": ".env",
+    "reason": "Environment config files",
+    "risk": "Critical"
+  },
+  {
+    "path": ".git",
+    "reason": "Git repository data",
+    "risk": "Critical"
+  },
+  {
+    "path": "*.db",
+    "reason": "Database files",
+    "risk": "Critical"
+  },
+  {
+    "path": "*.sqlite",
+    "reason": "SQLite database files",
+    "risk": "Critical"
+  }
+]

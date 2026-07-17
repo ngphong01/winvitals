@@ -1,0 +1,51 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ===== Catppuccin Mocha Dark Palette ===== -->
+
+    <!-- Surfaces -->
+    <SolidColorBrush x:Key="AppBackground"
+            Color="#1E1E2E"/>
+    <SolidColorBrush x:Key="AppSidebar"
+            Color="#181825"/>
+    <SolidColorBrush x:Key="AppCard"
+            Color="#313244"/>
+    <SolidColorBrush x:Key="AppInputBg"
+            Color="#3B3B5C"/>
+    <SolidColorBrush x:Key="AppBorder"
+            Color="#45475A"/>
+
+    <!-- Text -->
+    <SolidColorBrush x:Key="AppText"
+            Color="#CDD6F4"/>
+    <SolidColorBrush x:Key="AppTextMuted"
+            Color="#A6ADC8"/>
+    <SolidColorBrush x:Key="AppTextDisabled"
+            Color="#7F849C"/>
+
+    <!-- Semantic -->
+    <SolidColorBrush x:Key="AppAccent"
+            Color="#89B4FA"/>
+    <SolidColorBrush x:Key="AppAccentHover"
+            Color="#74C7EC"/>
+    <SolidColorBrush x:Key="AppAccentPressed"
+            Color="#89DCEB"/>
+    <SolidColorBrush x:Key="AppDanger"
+            Color="#F38BA8"/>
+    <SolidColorBrush x:Key="AppWarning"
+            Color="#FAB387"/>
+    <SolidColorBrush x:Key="AppSuccess"
+            Color="#A6E3A1"/>
+
+    <!-- UI-specific -->
+    <SolidColorBrush x:Key="AppSurfaceAlt"
+            Color="#2A2A3C"/>
+    <SolidColorBrush x:Key="AppHeaderBg"
+            Color="#252536"/>
+    <SolidColorBrush x:Key="AppOverlay"
+            Color="#585B70"/>
+
+    <!-- Icon font -->
+    <FontFamily x:Key="IconFont">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
+
+</ResourceDictionary>

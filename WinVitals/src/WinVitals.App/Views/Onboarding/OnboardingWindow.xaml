@@ -1,0 +1,288 @@
+<Window x:Class="WinVitals.App.Views.Onboarding.OnboardingWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        Width="680"
+        Height="500"
+        WindowStartupLocation="CenterScreen"
+        AllowsTransparency="True"
+        Background="Transparent">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </Window.Resources>
+    <Border Background="#F01E1E2E"
+            CornerRadius="12"
+            BorderBrush="#40FFFFFF"
+            BorderThickness="1">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="32"
+                    ShadowDepth="0"
+                    Opacity="0.5"/>
+        </Border.Effect>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Grid x:Name="ContentHost"
+                    Margin="32,28,32,0">
+                <!-- Step 0: Welcome -->
+                <Grid x:Name="Step0">
+                    <StackPanel VerticalAlignment="Center"
+                            HorizontalAlignment="Center">
+                        <Border Width="96"
+                                Height="96"
+                                CornerRadius="20"
+                                Background="#89B4FA"
+                                Margin="0,0,0,20">
+                            <TextBlock Text="W"
+                                    FontSize="56"
+                                    FontWeight="Bold"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Foreground="White"/>
+                        </Border>
+                        <TextBlock Text="Welcome to WinVitals"
+                                FontSize="28"
+                                FontWeight="Bold"
+                                
+                                HorizontalAlignment="Center"/>
+                        <TextBlock Text="Windows health &amp; cleanup suite"
+                                FontSize="16"
+                                Foreground="{DynamicResource AppTextMuted}"
+                                HorizontalAlignment="Center"
+                                Margin="0,8,0,24"/>
+                        <Grid HorizontalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Language / NgÃ´n ngá»¯:"
+                                    VerticalAlignment="Center"
+                                    Foreground="{DynamicResource AppTextMuted}"
+                                    Margin="0,0,12,0"/>
+                            <ComboBox Grid.Column="1"
+                                    ItemsSource="{Binding Languages}"
+                                    SelectedItem="{Binding SelectedLanguage}"
+                                      Width="120"
+                                    
+                                    Background="#3B3B5C"/>
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Step 1: Theme -->
+                <Grid x:Name="Step1"
+                        Visibility="Collapsed">
+                    <StackPanel VerticalAlignment="Center"
+                            HorizontalAlignment="Center">
+                        <TextBlock Text="ðŸŽ¨"
+                                FontSize="48"
+                                HorizontalAlignment="Center"
+                                Margin="0,0,0,16"/>
+                        <TextBlock Text="Choose your theme"
+                                FontSize="22"
+                                FontWeight="Bold"
+                                
+                                HorizontalAlignment="Center"/>
+                        <TextBlock Text="Pick a look that matches your style"
+                                Foreground="{DynamicResource AppTextMuted}"
+                                HorizontalAlignment="Center"
+                                Margin="0,8,0,24"/>
+                        <ItemsControl ItemsSource="{Binding Themes}"
+                                HorizontalAlignment="Center">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Command="{Binding DataContext.SelectThemeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            CommandParameter="{Binding}"
+                                            Width="100"
+                                            Height="80"
+                                            Margin="6"
+                                            Background="#313244"
+                                            
+                                            BorderThickness="1"
+                                            BorderBrush="#45475A">
+                                        <TextBlock Text="{Binding}"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                FontSize="14"/>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Step 2: Privacy -->
+                <Grid x:Name="Step2"
+                        Visibility="Collapsed">
+                    <StackPanel VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Width="440">
+                        <TextBlock Text="ðŸ”’"
+                                FontSize="48"
+                                HorizontalAlignment="Center"
+                                Margin="0,0,0,16"/>
+                        <TextBlock Text="Privacy &amp; telemetry"
+                                FontSize="22"
+                                FontWeight="Bold"
+                                
+                                HorizontalAlignment="Center"/>
+                        <TextBlock TextWrapping="Wrap"
+                                TextAlignment="Center"
+                                Foreground="{DynamicResource AppTextMuted}"
+                                Margin="0,8,0,20">
+                            Help us improve WinVitals by sending anonymous usage data. No file paths, content, or personal information is ever collected.
+                        </TextBlock>
+                        <CheckBox IsChecked="{Binding EnableTelemetry}"
+                                HorizontalAlignment="Center"
+                                >
+                            Send anonymous usage statistics
+                        </CheckBox>
+                        <Button Content="ðŸ“„ Read privacy policy"
+                                Style="{StaticResource SecondaryBtn}"
+                                HorizontalAlignment="Center"
+                                Margin="0,16,0,0"
+                                Padding="12,6"
+                                Click="OpenPrivacyPolicy_Click"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Step 3: First Scan -->
+                <Grid x:Name="Step3"
+                        Visibility="Collapsed">
+                    <StackPanel VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Width="400">
+                        <TextBlock Text="ðŸ”"
+                                FontSize="48"
+                                HorizontalAlignment="Center"
+                                Margin="0,0,0,16"/>
+                        <TextBlock Text="Run your first scan"
+                                FontSize="22"
+                                FontWeight="Bold"
+                                
+                                HorizontalAlignment="Center"/>
+                        <TextBlock Text="Find junk files, temp data, and unused caches taking up space."
+                                Foreground="{DynamicResource AppTextMuted}"
+                                HorizontalAlignment="Center"
+                                TextWrapping="Wrap"
+                                TextAlignment="Center"
+                                Margin="0,8,0,24"/>
+                        <Button Content="ðŸš€ Run Quick Scan now"
+                                Style="{StaticResource PrimaryBtn}"
+                                HorizontalAlignment="Center"
+                                Padding="16,10"
+                                FontSize="15"
+                                Click="RunScan_Click"/>
+                        <Button Content="Skip for now"
+                                Style="{StaticResource SecondaryBtn}"
+                                HorizontalAlignment="Center"
+                                Margin="0,12,0,0"
+                                Padding="10,6"
+                                Click="SkipScan_Click"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Step 4: Done -->
+                <Grid x:Name="Step4"
+                        Visibility="Collapsed">
+                    <StackPanel VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Width="440">
+                        <TextBlock Text="âœ¨"
+                                FontSize="56"
+                                HorizontalAlignment="Center"
+                                Margin="0,0,0,16"/>
+                        <TextBlock Text="You're all set!"
+                                FontSize="28"
+                                FontWeight="Bold"
+                                
+                                HorizontalAlignment="Center"/>
+                        <TextBlock TextWrapping="Wrap"
+                                TextAlignment="Center"
+                                Foreground="{DynamicResource AppTextMuted}"
+                                Margin="0,8,0,0">
+                            <Run>Pro tip: press </Run><Run FontWeight="Bold"
+                                    Foreground="#89B4FA">Ctrl+K</Run><Run> anywhere to open the command palette.</Run>
+                            <LineBreak/><Run>Use </Run><Run FontWeight="Bold"
+                                    Foreground="#89B4FA">Ctrl+1-8</Run><Run> to jump between pages.</Run>
+                            <LineBreak/><Run>Press </Run><Run FontWeight="Bold"
+                                    Foreground="#89B4FA">F1</Run><Run> for help and documentation.</Run>
+                        </TextBlock>
+                        <Button Content="ðŸŽ‰ Get Started"
+                                Style="{StaticResource PrimaryBtn}"
+                                FontSize="18"
+                                HorizontalAlignment="Center"
+                                Margin="0,28,0,0"
+                                Padding="32,14"
+                                Command="{Binding FinishCommand}"/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+
+            <!-- Footer: dots + buttons -->
+            <Grid Grid.Row="1"
+                    Margin="32,0,32,20">
+                <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center">
+                    <Ellipse x:Name="Dot0"
+                            Width="10"
+                            Height="10"
+                            Margin="3"
+                            Fill="#89B4FA"/>
+                    <Ellipse x:Name="Dot1"
+                            Width="10"
+                            Height="10"
+                            Margin="3"
+                            Fill="#45475A"/>
+                    <Ellipse x:Name="Dot2"
+                            Width="10"
+                            Height="10"
+                            Margin="3"
+                            Fill="#45475A"/>
+                    <Ellipse x:Name="Dot3"
+                            Width="10"
+                            Height="10"
+                            Margin="3"
+                            Fill="#45475A"/>
+                    <Ellipse x:Name="Dot4"
+                            Width="10"
+                            Height="10"
+                            Margin="3"
+                            Fill="#45475A"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Right">
+                    <Button Style="{StaticResource SecondaryBtn}"
+                            Padding="12,6"
+                            Margin="0,0,8,0"
+                            Command="{Binding BackCommand}"
+                            Visibility="{Binding CanGoBack, Converter={StaticResource BoolToVis}}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE0A4;" FontFamily="{DynamicResource IconFont}" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Back" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource PrimaryBtn}"
+                            Padding="16,6"
+                            Command="{Binding NextCommand}"
+                            Visibility="{Binding CanGoNext, Converter={StaticResource BoolToVis}}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Next" VerticalAlignment="Center"/>
+                            <TextBlock Text="&#xE0AB;" FontFamily="{DynamicResource IconFont}" FontSize="12" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

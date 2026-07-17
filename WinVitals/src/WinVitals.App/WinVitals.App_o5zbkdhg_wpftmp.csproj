@@ -1,0 +1,136 @@
+<Project>
+  <PropertyGroup>
+    <AssemblyName>WinVitals</AssemblyName>
+    <IntermediateOutputPath>obj\Debug\</IntermediateOutputPath>
+    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+    <MSBuildProjectExtensionsPath>D:\TOOl\Tool\WinVitals\src\WinVitals.App\obj\</MSBuildProjectExtensionsPath>
+    <_TargetAssemblyProjectName>WinVitals.App</_TargetAssemblyProjectName>
+    <RootNamespace>WinVitals.App</RootNamespace>
+  </PropertyGroup>
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>WinVitals.App</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="LiveChartsCore.SkiaSharpView.WPF" Version="2.0.0-rc5.4" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+    <PackageReference Include="Serilog" Version="4.2.0" />
+    <PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WinVitals.Core\WinVitals.Core.csproj" />
+    <ProjectReference Include="..\WinVitals.Services\WinVitals.Services.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.windowsdesktop.app.ref\8.0.13\ref\net8.0\Accessibility.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\communitytoolkit.mvvm\8.4.0\lib\net8.0\CommunityToolkit.Mvvm.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\opentk.glwpfcontrol\3.3.0\lib\net452\GLWpfControl.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\harfbuzzsharp\8.3.0.1\lib\net8.0\HarfBuzzSharp.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\litedb\5.0.21\lib\netstandard2.0\LiteDB.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\livechartscore\2.0.0-rc5.4\lib\net8.0-windows7.0\LiveChartsCore.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\livechartscore.skiasharpview\2.0.0-rc5.4\lib\net8.0-windows7.0\LiveChartsCore.SkiaSharpView.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\livechartscore.skiasharpview.wpf\2.0.0-rc5.4\lib\net8.0-windows7.0\LiveChartsCore.SkiaSharpView.WPF.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\Microsoft.CSharp.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.extensions.configuration.abstractions\8.0.0\lib\net8.0\Microsoft.Extensions.Configuration.Abstractions.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.extensions.configuration.binder\8.0.2\lib\net8.0\Microsoft.Extensions.Configuration.Binder.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.extensions.configuration.commandline\8.0.0\lib\net8.0\Microsoft.Extensions.Configuration.CommandLine.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.extensions.configuration\8.0.0\lib\net8.0\Microsoft.Extensions.Configuration.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.extensions.configuration.environmentvariables\8.0.0\lib\net8.0\Microsoft.Extensions.Configuration.EnvironmentVariables.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.extensions.configuration.fileextensions\8.0.1\lib\net8.0\Microsoft.Extensions.Configuration.FileExtensions.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.extensions.configuration.json\8.0.1\lib\net8.0\Microsoft.Extensions.Configuration.Json.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.extensions.configuration.usersecrets\8.0.1\lib\net8.0\Microsoft.Extensions.Configuration.UserSecrets.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.extensions.dependencyinjection.abstractions\8.0.2\lib\net8.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.extensions.dependencyinjection\8.0.1\lib\net8.0\Microsoft.Extensions.DependencyInjection.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.extensions.diagnostics.abstractions\8.0.1\lib\net8.0\Microsoft.Extensions.Diagnostics.Abstractions.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.extensions.diagnostics\8.0.1\lib\net8.0\Microsoft.Extensions.Diagnostics.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.extensions.fileproviders.abstractions\8.0.0\lib\net8.0\Microsoft.Extensions.FileProviders.Abstractions.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.extensions.fileproviders.physical\8.0.0\lib\net8.0\Microsoft.Extensions.FileProviders.Physical.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.extensions.filesystemglobbing\8.0.0\lib\net8.0\Microsoft.Extensions.FileSystemGlobbing.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.extensions.hosting.abstractions\8.0.1\lib\net8.0\Microsoft.Extensions.Hosting.Abstractions.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.extensions.hosting\8.0.1\lib\net8.0\Microsoft.Extensions.Hosting.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.extensions.logging.abstractions\8.0.2\lib\net8.0\Microsoft.Extensions.Logging.Abstractions.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.extensions.logging.configuration\8.0.1\lib\net8.0\Microsoft.Extensions.Logging.Configuration.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.extensions.logging.console\8.0.1\lib\net8.0\Microsoft.Extensions.Logging.Console.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.extensions.logging.debug\8.0.1\lib\net8.0\Microsoft.Extensions.Logging.Debug.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.extensions.logging\8.0.1\lib\net8.0\Microsoft.Extensions.Logging.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.extensions.logging.eventlog\8.0.1\lib\net8.0\Microsoft.Extensions.Logging.EventLog.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.extensions.logging.eventsource\8.0.1\lib\net8.0\Microsoft.Extensions.Logging.EventSource.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.extensions.options.configurationextensions\8.0.0\lib\net8.0\Microsoft.Extensions.Options.ConfigurationExtensions.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.extensions.options\8.0.2\lib\net8.0\Microsoft.Extensions.Options.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.extensions.primitives\8.0.0\lib\net8.0\Microsoft.Extensions.Primitives.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\Microsoft.VisualBasic.Core.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\Microsoft.VisualBasic.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\Microsoft.Win32.Primitives.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.windowsdesktop.app.ref\8.0.13\ref\net8.0\Microsoft.Win32.Registry.AccessControl.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\Microsoft.Win32.Registry.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.windowsdesktop.app.ref\8.0.13\ref\net8.0\Microsoft.Win32.SystemEvents.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\mscorlib.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\netstandard.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\opentk\3.3.1\lib\net20\OpenTK.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.windowsdesktop.app.ref\8.0.13\ref\net8.0\PresentationCore.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.windowsdesktop.app.ref\8.0.13\ref\net8.0\PresentationFramework.Aero.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.windowsdesktop.app.ref\8.0.13\ref\net8.0\PresentationFramework.Aero2.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.windowsdesktop.app.ref\8.0.13\ref\net8.0\PresentationFramework.AeroLite.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.windowsdesktop.app.ref\8.0.13\ref\net8.0\PresentationFramework.Classic.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.windowsdesktop.app.ref\8.0.13\ref\net8.0\PresentationFramework.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.windowsdesktop.app.ref\8.0.13\ref\net8.0\PresentationFramework.Luna.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.windowsdesktop.app.ref\8.0.13\ref\net8.0\PresentationFramework.Royale.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.windowsdesktop.app.ref\8.0.13\ref\net8.0\PresentationUI.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.windowsdesktop.app.ref\8.0.13\ref\net8.0\ReachFramework.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\serilog\4.2.0\lib\net8.0\Serilog.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\serilog.extensions.hosting\8.0.0\lib\net8.0\Serilog.Extensions.Hosting.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\serilog.extensions.logging\8.0.0\lib\net8.0\Serilog.Extensions.Logging.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\serilog.sinks.console\6.0.0\lib\net8.0\Serilog.Sinks.Console.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\serilog.sinks.file\6.0.0\lib\net8.0\Serilog.Sinks.File.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\skiasharp\3.116.1\ref\net8.0\SkiaSharp.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\skiasharp.harfbuzz\3.116.1\lib\net8.0\SkiaSharp.HarfBuzz.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\skiasharp.views.desktop.common\3.116.1\lib\net8.0\SkiaSharp.Views.Desktop.Common.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\skiasharp.views.wpf\3.116.1\lib\net462\SkiaSharp.Views.WPF.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.AppContext.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.Buffers.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\system.codedom\9.0.0\lib\net8.0\System.CodeDom.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.Collections.Concurrent.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.Collections.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.Collections.Immutable.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.Collections.NonGeneric.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.Collections.Specialized.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.ComponentModel.Annotations.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.ComponentModel.DataAnnotations.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.ComponentModel.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.ComponentModel.EventBasedAsync.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.ComponentModel.Primitives.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.ComponentModel.TypeConverter.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\system.configuration.configurationmanager\9.0.0\lib\net8.0\System.Configuration.ConfigurationManager.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.Configuration.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.Console.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.Core.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.Data.Common.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.Data.DataSetExtensions.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.Data.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.Diagnostics.Contracts.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.Diagnostics.Debug.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.Diagnostics.DiagnosticSource.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\system.diagnostics.eventlog\9.0.0\lib\net8.0\System.Diagnostics.EventLog.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.Diagnostics.FileVersionInfo.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\system.diagnostics.performancecounter\9.0.0\lib\net8.0\System.Diagnostics.PerformanceCounter.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.Diagnostics.Process.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.Diagnostics.StackTrace.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.Diagnostics.TextWriterTraceListener.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.Diagnostics.Tools.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.Diagnostics.TraceSource.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.Diagnostics.Tracing.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.windowsdesktop.app.ref\8.0.13\ref\net8.0\System.DirectoryServices.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.Drawing.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.Drawing.Primitives.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.Dynamic.Runtime.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.Formats.Asn1.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.Formats.Tar.dll" />
+    <ReferencePath Include="C:\Users\ls\.nuget\packages\microsoft.netcore.app.ref\8.0.13\ref\net8.0\System.Globalization.Calendars.dll" />
+    <Referen
