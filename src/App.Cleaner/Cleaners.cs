@@ -1,6 +1,7 @@
 using App.Core;
 using Serilog;
 
+#pragma warning disable CS9113 // riskEngine unused in some cleaners
 namespace App.Cleaner;
 
 /// <summary>

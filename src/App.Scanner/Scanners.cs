@@ -3,6 +3,7 @@ using App.Core;
 
 namespace App.Scanner;
 
+#pragma warning disable CS9113 // Replaced by simplified constructor
 /// <summary>
 /// Disk Scanner — folder-level only, ultra-fast streaming enumeration.
 /// Reports directory sizes. Individual files handled by LargeFileFinder.
@@ -166,7 +167,7 @@ public class DiskScanner(IRuleEngine ruleEngine, IRiskEngine riskEngine) : IScan
 /// <summary>
 /// Large File Finder - tìm file lớn hơn ngưỡng (tối ưu: skip system dirs, báo progress)
 /// </summary>
-public class LargeFileFinder(IRuleEngine ruleEngine, IRiskEngine riskEngine) : IScanner
+public class LargeFileFinder : IScanner
 {
     public string Name => "Large File Finder";
     public ScanType ScanType => ScanType.Deep;
@@ -271,12 +272,12 @@ public class LargeFileFinder(IRuleEngine ruleEngine, IRiskEngine riskEngine) : I
 /// <summary>
 /// Orphan Detector - phát hiện file/thư mục còn sót sau gỡ cài đặt
 /// </summary>
-public class OrphanDetector(IRuleEngine ruleEngine, IRiskEngine riskEngine) : IScanner
+public class OrphanDetector : IScanner
 {
     public string Name => "Orphan Detector";
     public ScanType ScanType => ScanType.Deep;
 
-    public async Task<List<ScanItem>> ScanAsync(
+    public Task<List<ScanItem>> ScanAsync(
         IEnumerable<string> drives, IProgress<(string Status, int Progress)>? progress = null,
         CancellationToken ct = default)
     {
@@ -321,13 +322,12 @@ public class OrphanDetector(IRuleEngine ruleEngine, IRiskEngine riskEngine) : IS
                         }
                     }
                 }
-                ;
             }
             catch { /* skip */ }
         }
 
         progress?.Report(($"Found {items.Count} orphan items.", 100));
-        return items;
+        return Task.FromResult(items);
     }
 
     private HashSet<string> GetInstalledAppPaths()
@@ -395,7 +395,7 @@ public class OrphanDetector(IRuleEngine ruleEngine, IRiskEngine riskEngine) : IS
 /// <summary>
 /// Duplicate Finder - tìm file trùng lặp theo kích thước + hash
 /// </summary>
-public class DuplicateFinder(IRuleEngine ruleEngine, IRiskEngine riskEngine) : IScanner
+public class DuplicateFinder : IScanner
 {
     public string Name => "Duplicate Finder";
     public ScanType ScanType => ScanType.Deep;

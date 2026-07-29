@@ -7,6 +7,7 @@ obj/
 
 # Build output
 publish/
+publish-x86/
 *.nupkg
 
 # IDE

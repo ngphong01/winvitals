@@ -94,3 +94,56 @@ public interface IPerformanceAnalyzer
     double CalculateHealthScore(PerformanceSnapshot snapshot);
     Task<DashboardSummary> GetDashboardSummaryAsync();
 }
+
+// ============================
+// Domain Service Interfaces (Requirements 1.7, 3.1, 3.2, 3.3, 3.4)
+// ============================
+
+/// <summary>
+/// Coordinates scanning operations across multiple scanner types.
+/// </summary>
+public interface IScannerService
+{
+    void RegisterScanner(IScanner scanner);
+    Task<List<ScanItem>> ScanAsync(ScanOptions options,
+        IProgress<(string Status, int Progress)>? progress = null,
+        CancellationToken ct = default);
+    int ScannerCount { get; }
+}
+
+/// <summary>
+/// Orchestrates cleaning operations.
+/// </summary>
+public interface ICleanerService
+{
+    Task<(long FreedBytes, int ItemsProcessed, int ItemsBlocked, List<string> Errors)> CleanAsync(
+        IEnumerable<ScanItem> items, CleanOptions options,
+        IProgress<string>? progress = null,
+        CancellationToken ct = default);
+    Task<List<ScanItem>> PreviewAsync(IEnumerable<ScanItem> items, CleanOptions options,
+        CancellationToken ct = default);
+    IRuleEngine RuleEngine { get; }
+}
+
+/// <summary>
+/// Manages performance metric collection.
+/// </summary>
+public interface IPerformanceService
+{
+    Task<PerformanceSnapshot> CaptureSnapshotAsync();
+    Task<List<PerformanceSnapshot>> GetHistoryAsync(TimeSpan timespan);
+    Task<DashboardSummary> GetDashboardSummaryAsync();
+    List<string> CheckAlerts(PerformanceSnapshot snapshot);
+}
+
+/// <summary>
+/// Manages quarantine operations.
+/// </summary>
+public interface IQuarantineService
+{
+    Task<int> QuarantineAsync(IEnumerable<ScanItem> items, CancellationToken ct = default);
+    Task<int> RestoreAsync(IEnumerable<int> itemIds, CancellationToken ct = default);
+    Task<int> PermanentDeleteAsync(IEnumerable<int> itemIds, CancellationToken ct = default);
+    Task<List<QuarantineItem>> ListAsync(QuarantineStatus? status = null);
+    Task<int> CleanupExpiredAsync(CancellationToken ct = default);
+}
