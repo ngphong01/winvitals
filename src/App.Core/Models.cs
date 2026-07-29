@@ -177,6 +177,19 @@ public class AppStatistics
     public int BlockedItemsCount { get; set; }
     public DateTime? LastScanDate { get; set; }
     public DateTime? LastCleanDate { get; set; }
+
+    // Performance stats
+    public int TotalSnapshots { get; set; }
+    public double AvgCpuPercent { get; set; }
+    public double AvgMemoryPercent { get; set; }
+    public double AvgDiskPercent { get; set; }
+    public double CurrentCpuPercent { get; set; }
+    public double CurrentMemoryPercent { get; set; }
+    public double CurrentDiskPercent { get; set; }
+    public int TotalCleanOperations { get; set; }
+    public long TotalBytesFreed { get; set; }
+    public int ActiveQuarantineItems { get; set; }
+    public long QuarantinedTotalSize { get; set; }
 }
 
 /// <summary>
