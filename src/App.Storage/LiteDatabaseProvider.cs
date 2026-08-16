@@ -260,12 +260,27 @@ public class LiteDatabaseProvider : IDisposable
         var collection = _database.GetCollection<QuarantineItemDoc>("quarantine");
         var objectId = new ObjectId(id.ToString("X8").PadLeft(24, '0'));
         var doc = collection.FindById(objectId);
-        
+
         if (doc == null) return false;
-        
+
         doc.Status = status.ToString();
         collection.Update(doc);
         return true;
+    }
+
+    /// <summary>
+    /// Update quarantine item path — dùng khi migrate thư mục quarantine
+    /// </summary>
+    public bool UpdateQuarantinePath(int id, string newPath)
+    {
+        var collection = _database.GetCollection<QuarantineItemDoc>("quarantine");
+        var objectId = new ObjectId(id.ToString("X8").PadLeft(24, '0'));
+        var doc = collection.FindById(objectId);
+
+        if (doc == null) return false;
+
+        doc.QuarantinePath = newPath;
+        return collection.Update(doc);
     }
 
     /// <summary>

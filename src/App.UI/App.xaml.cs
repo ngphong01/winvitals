@@ -81,11 +81,13 @@ public partial class App : Application
         services.AddLogging(b => b.AddSerilog(Log, dispose: true));
 
         // Infrastructure — Database
-        var dbPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "WHM", "whm-data.db");
+        // 1 file duy nhất: %LocalAppData%\WindowsHealthManager\whm.db
+        // Cùng instance chia sẻ cho repository layer lẫn IStorageProvider
+        var dbPath = DatabaseProvider.GetDefaultDatabasePath();
         Directory.CreateDirectory(Path.GetDirectoryName(dbPath)!);
         services.AddSingleton(new LiteDatabaseProvider(dbPath));
+        services.AddSingleton<IStorageProvider>(
+            sp => new DatabaseProvider(sp.GetRequiredService<LiteDatabaseProvider>()));
         services.AddSingleton<MigrationService>();
 
         // Infrastructure — File System
@@ -174,15 +176,31 @@ public partial class App : Application
 
     private static bool TryAutoInstall()
     {
+#if DEBUG
+        return false;
+#else
         var exePath = Environment.ProcessPath;
         if (string.IsNullOrEmpty(exePath)) return false;
         var installDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "WinHealth");
         if (exePath.StartsWith(installDir, StringComparison.OrdinalIgnoreCase)) return false;
 
+        // Check if user previously declined or explicitly set portable mode
+        var flagPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WHM", "portable.flag");
+        if (File.Exists(flagPath) || File.Exists(Path.Combine(AppContext.BaseDirectory, ".portable"))) return false;
+
         var result = MessageBox.Show(
             $"Bạn muốn cài đặt Windows Health Manager vào máy tính?\n\nThư mục: {installDir}\nSẽ tạo shortcut Desktop & Start Menu.\n\nChọn Yes để cài, No để chạy portable.",
             "Cài Đặt Windows Health Manager", MessageBoxButton.YesNo, MessageBoxImage.Question);
-        if (result != MessageBoxResult.Yes) return false;
+        if (result != MessageBoxResult.Yes)
+        {
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(flagPath)!);
+                File.WriteAllText(flagPath, "portable");
+            }
+            catch { }
+            return false;
+        }
 
         try
         {
@@ -231,5 +249,6 @@ public partial class App : Application
             MessageBox.Show($"Cài đặt thất bại: {ex.Message}\n\nApp sẽ chạy ở chế độ portable.", "Lỗi Cài Đặt", MessageBoxButton.OK, MessageBoxImage.Warning);
             return false;
         }
+#endif
     }
 }

@@ -8,21 +8,28 @@ namespace App.Performance;
 /// </summary>
 public class PerformanceAnalyzer : IPerformanceAnalyzer
 {
+    private static PerformanceCounter? _cpuCounter;
+    private static readonly object _counterLock = new();
+
     public async Task<PerformanceSnapshot> GetSnapshotAsync()
     {
         var snap = new PerformanceSnapshot { Timestamp = DateTime.Now };
 
         await Task.Run(() =>
         {
-            // CPU — wrapped in try/catch for systems without perf counters
+            // CPU — reuse cached performance counter for 0ms delay
             try
             {
-                using var cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
-                cpuCounter.NextValue();
-                Thread.Sleep(100); // Reduced from 500ms — still accurate enough
-                snap.CpuPercent = Math.Round(cpuCounter.NextValue(), 1);
+                lock (_counterLock)
+                {
+                    _cpuCounter ??= new PerformanceCounter("Processor", "% Processor Time", "_Total");
+                    snap.CpuPercent = Math.Round(_cpuCounter.NextValue(), 1);
+                }
             }
-            catch { snap.CpuPercent = 0; }
+            catch
+            {
+                snap.CpuPercent = 0;
+            }
             snap.CpuCoreCount = Environment.ProcessorCount;
 
             // Memory — use kernel32 GlobalMemoryStatusEx for accurate system RAM
@@ -66,9 +73,8 @@ public class PerformanceAnalyzer : IPerformanceAnalyzer
             }
             catch { snap.DriveLetter = "?"; }
 
-            // Top processes
+            // Top processes sorted by WorkingSet (RAM) — skip expensive TotalProcessorTime permission checks
             var processes = Process.GetProcesses()
-                .Where(p => { try { _ = p.TotalProcessorTime; return true; } catch { return false; } })
                 .OrderByDescending(p => { try { return p.WorkingSet64; } catch { return 0; } })
                 .Take(20);
 
@@ -278,22 +284,22 @@ public class PerformanceAnalyzer : IPerformanceAnalyzer
         var recs = new List<string>();
 
         if (snap.CpuPercent > 80)
-            recs.Add($"⚠️ CPU usage is high ({snap.CpuPercent:F0}%). Check resource-heavy processes.");
+            recs.Add($"⚠️ CPU đang cao ({snap.CpuPercent:F0}%). Kiểm tra các tiến trình ngốn tài nguyên.");
         if (snap.MemoryPercent > 85)
-            recs.Add($"⚠️ RAM almost full ({snap.MemoryPercent:F0}%). Close unused applications.");
+            recs.Add($"⚠️ RAM gần đầy ({snap.MemoryPercent:F0}%). Đóng bớt ứng dụng đang chạy.");
         if (snap.DiskPercent > 90)
-            recs.Add($"⚠️ {snap.DriveLetter}: drive almost full ({snap.DiskPercent:F0}%). Run Disk Cleaner.");
-        if (snap.MemoryPercent > 70)
-            recs.Add($"💡 Memory usage is {snap.MemoryPercent:F0}%. Consider closing background apps.");
-        if (snap.DiskPercent > 75)
-            recs.Add($"💡 {snap.DriveLetter}: drive is {snap.DiskPercent:F0}% full. Free up some space.");
+            recs.Add($"⚠️ Ổ {snap.DriveLetter}: gần đầy ({snap.DiskPercent:F0}%). Chạy Dọn Dẹp ngay.");
+        else if (snap.DiskPercent > 75)
+            recs.Add($"💡 Ổ {snap.DriveLetter}: đã dùng {snap.DiskPercent:F0}%. Nên giải phóng thêm dung lượng.");
+        if (snap.MemoryPercent > 70 && snap.MemoryPercent <= 85)
+            recs.Add($"💡 RAM đang dùng {snap.MemoryPercent:F0}%. Cân nhắc đóng các ứng dụng chạy ngầm.");
 
         var heavyProcs = snap.TopProcesses.Where(p => p.MemoryMB > 1000).Take(3);
         foreach (var p in heavyProcs)
-            recs.Add($"🔴 {p.Name} using {p.MemoryMB:F0} MB RAM");
+            recs.Add($"🔴 {p.Name} đang dùng {p.MemoryMB:F0} MB RAM");
 
         if (recs.Count == 0)
-            recs.Add("✅ System running normally.");
+            recs.Add("✅ Hệ thống đang hoạt động ổn định.");
 
         return recs;
     }

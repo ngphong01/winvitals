@@ -77,7 +77,7 @@ public class PerformanceRepository : IPerformanceRepository
             }
         }
 
-        var cleanAll = db.GetCollection<CleanHistory>("clean_history").FindAll().ToList();
+        var cleanAll = db.GetCollection<CleanHistory>("cleanHistory").FindAll().ToList();
         if (cleanAll.Count > 0)
         {
             stats.TotalCleanOperations = cleanAll.Count;

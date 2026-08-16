@@ -59,8 +59,44 @@ public class RiskEngine : IRiskEngine
         };
     }
 
+    private static readonly string[] ProtectedFolders =
+    [
+        "\\windows\\system32\\", "\\windows\\syswow64\\", "\\windows\\winsxs\\",
+        "\\windows\\drivers\\", "\\windows\\installer\\", "\\desktop\\", "\\documents\\",
+        "\\pictures\\", "\\videos\\", "\\music\\", "\\onedrive\\"
+    ];
+
+    private static readonly string[] DevCacheFolderTokens =
+    [
+        "\\node_modules\\", "\\build\\", "\\dist\\", "\\.next\\", "\\__pycache__\\",
+        "\\bin\\debug\\", "\\bin\\release\\", "\\obj\\debug\\", "\\obj\\release\\",
+        "\\target\\", "\\.gradle\\", "\\.cache\\", "\\temp\\", "\\tmp\\",
+        "\\prefetch\\", "\\$recycle.bin\\", "\\crashdumps\\", "\\logs\\"
+    ];
+
+    private static readonly string[] ProtectedExtensions =
+    [
+        ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".pdf",
+        ".png", ".jpg", ".jpeg", ".mp4", ".zip", ".rar", ".7z", ".tar", ".gz",
+        ".sql", ".db", ".sqlite", ".env", ".pem", ".key", ".pfx"
+    ];
+
     public bool IsProtected(string path)
     {
+        if (string.IsNullOrWhiteSpace(path)) return true;
+        var norm = path.Replace('/', '\\').ToLowerInvariant();
+
+        // If path is inside a recognized temp/cache folder, it is NOT protected
+        if (DevCacheFolderTokens.Any(c => norm.Contains(c))) return false;
+
+        // 1. Built-in protected folders check
+        if (ProtectedFolders.Any(f => norm.Contains(f))) return true;
+
+        // 2. Protected extensions check for user files
+        var ext = Path.GetExtension(norm);
+        if (!string.IsNullOrEmpty(ext) && ProtectedExtensions.Contains(ext)) return true;
+
+        // 3. User configured JSON protected paths
         return _protectedPaths.Any(p => MatchesProtected(path, p.Path));
     }
 

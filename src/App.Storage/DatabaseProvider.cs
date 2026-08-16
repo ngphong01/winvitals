@@ -37,6 +37,15 @@ public class DatabaseProvider : IStorageProvider, IDisposable
     }
 
     /// <summary>
+    /// Wraps một LiteDatabaseProvider đã có (dùng chung connection với repository layer)
+    /// </summary>
+    public DatabaseProvider(LiteDatabaseProvider shared)
+    {
+        _database = shared ?? throw new ArgumentNullException(nameof(shared));
+        _databasePath = shared.ConnectionString;
+    }
+
+    /// <summary>
     /// Gets the database path, defaulting to user's app data folder if not specified
     /// </summary>
     /// <param name="customPath">Custom path if provided</param>
@@ -65,6 +74,15 @@ public class DatabaseProvider : IStorageProvider, IDisposable
     public static string GetDefaultDatabasePath()
     {
         return GetDatabasePath(null);
+    }
+
+    /// <summary>
+    /// Nơi duy nhất lưu file cách ly: %LocalAppData%\WindowsHealthManager\quarantine
+    /// </summary>
+    public static string GetQuarantineDirectory()
+    {
+        var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        return Path.Combine(appDataPath, AppDataFolderName, "quarantine");
     }
 
     /// <summary>
@@ -119,6 +137,66 @@ public class DatabaseProvider : IStorageProvider, IDisposable
     public async Task<bool> UpdateQuarantineStatusAsync(int id, QuarantineStatus status)
     {
         return await Task.Run(() => _database.UpdateQuarantineStatus(id, status));
+    }
+
+    /// <summary>
+    /// Một lần duy nhất: dời file cách ly từ [thư mục exe]\quarantine (cách cũ)
+    /// sang %LocalAppData%\WindowsHealthManager\quarantine, cập nhật lại DB.
+    /// </summary>
+    public async Task<int> MigrateLegacyQuarantineDirectoryAsync(CancellationToken ct = default)
+    {
+        var oldBase = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "quarantine");
+        if (!Directory.Exists(oldBase)) return 0;
+
+        var newBase = GetQuarantineDirectory();
+        Directory.CreateDirectory(newBase);
+
+        var prefix = oldBase.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        var items = await GetQuarantineItemsAsync();
+        int moved = 0;
+
+        foreach (var item in items)
+        {
+            if (ct.IsCancellationRequested) break;
+            if (!item.QuarantinePath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) continue;
+
+            var src = item.QuarantinePath.TrimEnd('\\', '/');
+            if (!File.Exists(src) && !Directory.Exists(src)) continue;
+
+            var fileName = Path.GetFileName(src);
+            var dest = Path.Combine(newBase, fileName);
+            for (int i = 1; File.Exists(dest) || Directory.Exists(dest); i++)
+                dest = Path.Combine(newBase, $"{i}_{fileName}");
+
+            try
+            {
+                if (File.Exists(src)) File.Move(src, dest);
+                else if (Directory.Exists(src)) Directory.Move(src, dest);
+
+                if (await Task.Run(() => _database.UpdateQuarantinePath(item.Id, dest)))
+                    moved++;
+            }
+            catch { /* bỏ qua item không di chuyển được, không làm mất dữ liệu */ }
+        }
+
+        // File lạ không có record trong DB cũng chuyển sang — tránh bỏ sót trong folder cũ
+        foreach (var entry in Directory.EnumerateFileSystemEntries(oldBase))
+        {
+            if (ct.IsCancellationRequested) break;
+            try
+            {
+                var fileName = Path.GetFileName(entry.TrimEnd('\\', '/'));
+                var dest = Path.Combine(newBase, fileName);
+                for (int i = 1; File.Exists(dest) || Directory.Exists(dest); i++)
+                    dest = Path.Combine(newBase, $"{i}_{fileName}");
+                if (File.Exists(entry)) File.Move(entry, dest);
+                else if (Directory.Exists(entry)) Directory.Move(entry, dest);
+            }
+            catch { }
+        }
+
+        try { if (!Directory.EnumerateFileSystemEntries(oldBase).Any()) Directory.Delete(oldBase); } catch { }
+        return moved;
     }
 
     public async Task<string?> GetSettingAsync(string key)

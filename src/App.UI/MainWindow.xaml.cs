@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -24,6 +24,7 @@ public partial class MainWindow : Window
     private readonly string _quarantineDir;
     private CancellationTokenSource? _cts;
     private bool _isScanning;
+    public bool IsScanning => _isScanning;
     private readonly List<(string Path, long SizeBytes, bool WasDirectory)> _lastCleanSnapshot = [];
     private Dictionary<string, long>? _diskBeforeSnapshot;
 
@@ -46,13 +47,13 @@ public partial class MainWindow : Window
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         var dataDir = Path.Combine(localAppData, "WindowsHealthManager");
         var rulesDir = Path.Combine(_baseDir, "rules");
-        _quarantineDir = Path.Combine(_baseDir, "quarantine");
+        _quarantineDir = DatabaseProvider.GetQuarantineDirectory();
 
         Directory.CreateDirectory(dataDir);
         Directory.CreateDirectory(_quarantineDir);
         Directory.CreateDirectory(rulesDir);
 
-        _storage = new DatabaseProvider(Path.Combine(dataDir, "whm.db"));
+        _storage = App.Services.GetRequiredService<IStorageProvider>();
         _ruleEngine = new RuleEngine(rulesDir);
         _riskEngine = new RiskEngine(rulesDir);
         _perfAnalyzer = new PerformanceAnalyzer();
@@ -70,6 +71,7 @@ public partial class MainWindow : Window
     private async Task InitializeAsync()
     {
         await _ruleEngine.LoadRulesAsync();
+        await _storage.MigrateLegacyQuarantineDirectoryAsync();
         await RefreshDashboardAsync();
         Nav_Click(BtnDashboard, null!);
     }
@@ -144,31 +146,76 @@ public partial class MainWindow : Window
             DriveCards.Items.Add(card);
         }
 
-        // Health score (using snap from above)
+        // Health score
         TxtScore.Text = $"{snap.HealthScore:F0}";
-        TxtScore.Foreground = snap.HealthScore >= 80
-            ? new SolidColorBrush(Color.FromRgb(0x7E, 0xCF, 0x6A))
+        var scoreColor = snap.HealthScore >= 80
+            ? Color.FromRgb(0x7E, 0xCF, 0x6A)
             : snap.HealthScore >= 60
-                ? new SolidColorBrush(Color.FromRgb(0xDD, 0xAF, 0x68))
-                : new SolidColorBrush(Color.FromRgb(0xE7, 0x6F, 0x80));
+                ? Color.FromRgb(0xDD, 0xAF, 0x68)
+                : Color.FromRgb(0xE7, 0x6F, 0x80);
+        TxtScore.Foreground = new SolidColorBrush(scoreColor);
         TxtHealthLabel.Text = snap.HealthScore >= 80 ? "Tốt" : snap.HealthScore >= 60 ? "Trung bình" : "Kém";
         TxtHealthLabel.Foreground = TxtScore.Foreground;
 
-        TxtTotalFreed.Text = stats.TotalSpaceFreedFormatted;
+        // Ring donut — show disk % or health
+        var ringPct = (int)snap.DiskPercent;
+        TxtRingValue.Text = $"{ringPct}";
+        HealthRingEllipse.Stroke = ringPct >= 90
+            ? new SolidColorBrush(Color.FromRgb(0xE7, 0x6F, 0x80))
+            : ringPct >= 70
+                ? new SolidColorBrush(Color.FromRgb(0xE0, 0x80, 0x50))
+                : new SolidColorBrush(Color.FromRgb(0x7E, 0xCF, 0x6A));
+        // Circumference = π * d ≈ 220; dash = (pct/100) * 220
+        var dashLen = ringPct / 100.0 * 220.0;
+        HealthRingEllipse.StrokeDashArray = [dashLen, 220 - dashLen];
 
-        // Cleanup Potential estimate
+        TxtTotalFreed.Text = stats.TotalSpaceFreedFormatted;
+        TxtQuarantinedDash.Text = "0 items"; // will be updated below
+
+        // Cleanup Potential banner — gradient background + content synced with health score
         try
         {
             var estimate = await Task.Run(EstimateCleanableSpace);
-            if (estimate > 50_000_000)
+
+            if (snap.HealthScore < 60)
             {
-                TxtCleanableEstimate.Text = $"⚡ Có thể giải phóng ~{ScanItem.FormatSize(estimate)}";
-                TxtCleanableDetail.Text = "Từ temp, cache, recycle bin, Windows Update...";
+                // Kém: banner đỏ
+                BannerGrad0.Color = Color.FromRgb(0x2A, 0x08, 0x08);
+                BannerGrad1.Color = Color.FromRgb(0x40, 0x10, 0x10);
+                BannerBorderColor.Color = Color.FromRgb(0xE7, 0x6F, 0x80);
+                CleanupPotentialBannerIcon.Background = new SolidColorBrush(Color.FromRgb(0x40, 0x10, 0x18));
+                CleanupPotentialBannerIconText.Text = "⚠️";
+                TxtCleanableEstimate.Foreground = Danger;
+                TxtCleanableEstimate.Text = estimate > 50_000_000
+                    ? $"⚠️ Cần tối ưu hệ thống — có thể giải phóng ~{ScanItem.FormatSize(estimate)}"
+                    : "⚠️ Điểm sức khỏe thấp — kiểm tra cảnh báo bên dưới";
+                TxtCleanableDetail.Text = "Ổ đĩa hệ thống sắp đầy và hiệu năng RAM đang ở mức cao.";
+            }
+            else if (snap.HealthScore < 80 || estimate > 50_000_000)
+            {
+                // Trung bình: banner vàng cam (giống ảnh)
+                BannerGrad0.Color = Color.FromRgb(0x2A, 0x1E, 0x08);
+                BannerGrad1.Color = Color.FromRgb(0x3A, 0x28, 0x06);
+                BannerBorderColor.Color = Color.FromRgb(0xDD, 0xAF, 0x68);
+                CleanupPotentialBannerIcon.Background = new SolidColorBrush(Color.FromRgb(0x3A, 0x2A, 0x06));
+                CleanupPotentialBannerIconText.Text = "⚡";
+                TxtCleanableEstimate.Foreground = Warning;
+                TxtCleanableEstimate.Text = estimate > 50_000_000
+                    ? $"⚡ Cần tối ưu hệ thống — có thể giải phóng ~{ScanItem.FormatSize(estimate)}"
+                    : "⚡ Hệ thống hoạt động ổn — còn có thể tối ưu thêm";
+                TxtCleanableDetail.Text = "Ổ đĩa hệ thống sắp đầy và hiệu năng RAM đang ở mức cao.";
             }
             else
             {
-                TxtCleanableEstimate.Text = "✅ Hệ thống đã khá sạch!";
-                TxtCleanableDetail.Text = "Không tìm thấy nhiều rác có thể dọn nhanh.";
+                // Tốt: banner xanh
+                BannerGrad0.Color = Color.FromRgb(0x08, 0x1E, 0x12);
+                BannerGrad1.Color = Color.FromRgb(0x0A, 0x28, 0x18);
+                BannerBorderColor.Color = Color.FromRgb(0x7E, 0xCF, 0x6A);
+                CleanupPotentialBannerIcon.Background = new SolidColorBrush(Color.FromRgb(0x18, 0x34, 0x28));
+                CleanupPotentialBannerIconText.Text = "✅";
+                TxtCleanableEstimate.Foreground = Success;
+                TxtCleanableEstimate.Text = "✅ Hệ thống đang rất sạch sẽ!";
+                TxtCleanableDetail.Text = "Không tìm thấy nhiều rác. Tiếp tục duy trì tốt.";
             }
         }
         catch { TxtCleanableEstimate.Text = "Đang ước tính..."; }
@@ -228,10 +275,10 @@ public partial class MainWindow : Window
                 FontStyle = FontStyles.Italic, Margin = new Thickness(0, 4, 0, 0)
             });
 
-        // SMART disk health
+        // SMART disk health (run in background thread to prevent blocking UI)
         try
         {
-            var smartResults = SmartDiskChecker.CheckAllDrives();
+            var smartResults = await Task.Run(SmartDiskChecker.CheckAllDrives);
             if (smartResults.Count > 0)
             {
                 RecentList.Items.Add(new TextBlock
@@ -288,21 +335,16 @@ public partial class MainWindow : Window
         // Skip if already on this page (debounce)
         if (_currentPage == tag && tag != "Dashboard") return;
 
-        // Chặn chuyển trang nếu đang scan
-        if (_isScanning)
+        // Hủy tác vụ scan đang chạy khi chuyển trang
+        if (_cts != null && !_cts.IsCancellationRequested)
         {
-            MessageBox.Show("Đang quét — vui lòng đợi hoặc hủy tác vụ hiện tại trước khi chuyển trang.", "Đang xử lý",
-                MessageBoxButton.OK, MessageBoxImage.Information);
-            // keep current page
-            return;
+            try { _cts.Cancel(); } catch { }
+            _cts.Dispose();
+            _cts = null;
         }
+        HideLoading();
 
         _currentPage = tag;
-
-        // Hủy mọi tác vụ scan đang chạy trước khi chuyển trang
-        try { _cts?.Cancel(); } catch { /* token may not be cancellable */ }
-        _cts?.Dispose();
-        _cts = null;
 
         // Reset all nav button highlights
         foreach (var b in _navButtons)
@@ -313,8 +355,17 @@ public partial class MainWindow : Window
         DashboardView.Visibility = showDash ? Visibility.Visible : Visibility.Collapsed;
         PageView.Visibility = showDash ? Visibility.Collapsed : Visibility.Visible;
 
+        var navFade = new System.Windows.Media.Animation.DoubleAnimation
+        {
+            From = 0.5,
+            To = 1.0,
+            Duration = TimeSpan.FromMilliseconds(200),
+            EasingFunction = new System.Windows.Media.Animation.CubicEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut }
+        };
+
         if (showDash)
         {
+            DashboardView.BeginAnimation(UIElement.OpacityProperty, navFade);
             _ = RefreshDashboardAsync().ContinueWith(t =>
             {
                 if (t.IsFaulted && t.Exception != null)
@@ -323,16 +374,26 @@ public partial class MainWindow : Window
             return;
         }
 
-        PagePanel.Children.Clear();
+        PageView.BeginAnimation(UIElement.OpacityProperty, navFade);
 
-        // Stop any running timers from previous page
+        // Cleanup resources from previous page
         if (PagePanel.Tag is System.Windows.Threading.DispatcherTimer oldTimer)
+        {
             oldTimer.Stop();
+        }
+        else if (PagePanel.Tag is Action cleanupAction)
+        {
+            try { cleanupAction(); } catch { }
+        }
+        PagePanel.Tag = null;
+
+        PagePanel.Children.Clear();
 
         PagePanel.Children.Add(new TextBlock
         {
             Text = GetPageTitle(tag),
-            Style = FindResource("PageTitle") as Style
+            FontSize = 22, FontWeight = FontWeights.Bold,
+            Foreground = Primary, Margin = new Thickness(0, 0, 0, 4)
         });
 
         switch (tag)
@@ -357,17 +418,17 @@ public partial class MainWindow : Window
 
     private static string GetPageTitle(string tag) => tag switch
     {
-        "Disk" => " Phân Tích Ổ Đĩa",
-        "Cleaner" => " Dọn Dẹp",
-        "FileTools" => " Công Cụ File",
-        "DevTools" => " Dev Tools",
-        "Performance" => " Hiệu Năng Hệ Thống",
-        "Quarantine" => " Cách Ly & Khôi Phục",
-        "AutoClean" => " Tự Động & Lịch",
-        "Rules" => " Bộ Quy Tắc",
-        "Community" => " Rule Packs Cộng Đồng",
-        "About" => " Giới Thiệu",
-        _ => tag
+        "Disk"        => "📊  Phân Tích Ổ Đĩa",
+        "Cleaner"     => "🧹  Dọn Dẹp",
+        "FileTools"   => "📁  Công Cụ File",
+        "DevTools"    => "⚙️  Dev Tools",
+        "Performance" => "⚡  Hiệu Năng Hệ Thống",
+        "Quarantine"  => "🛡  Cách Ly & Khôi Phục",
+        "AutoClean"   => "🕐  Tự Động & Lịch",
+        "Rules"       => "📋  Bộ Quy Tắc",
+        "Community"   => "📦  Rule Packs Cộng Đồng",
+        "About"       => "ℹ️  Giới Thiệu",
+        _             => tag
     };
 
     private void ShowLoading(string msg)
@@ -444,9 +505,10 @@ public partial class MainWindow : Window
     {
         var card = new Border
         {
-            Background = CardBg, BorderBrush = CardBorder, BorderThickness = new(1),
-            CornerRadius = new(10), Padding = padding ?? new(14),
-            Margin = margin ?? new(0), SnapsToDevicePixels = true
+            Style = FindResource("GlassCard") as Style,
+            Padding = padding ?? new(14),
+            Margin = margin ?? new(0),
+            SnapsToDevicePixels = true
         };
         if (child != null) card.Child = child as UIElement ?? new TextBlock { Text = child.ToString() };
         return card;
@@ -454,11 +516,9 @@ public partial class MainWindow : Window
 
     private Button MakeBtn(string text, Style? style = null, double? width = null, Thickness? margin = null)
     {
-        var btn = new Button { Content = text, Style = style ?? PrimaryBtn };
+        var btn = new Button { Content = text, Style = style ?? FindResource("BtnPrimary") as Style ?? PrimaryBtn };
         if (width.HasValue) btn.Width = width.Value;
         if (margin != null) btn.Margin = margin.Value;
-        btn.MouseEnter += (_, _) => { btn.Opacity = 0.9; };
-        btn.MouseLeave += (_, _) => { btn.Opacity = 1; };
         return btn;
     }
 
@@ -467,19 +527,10 @@ public partial class MainWindow : Window
     {
         var card = new Border
         {
-            Background = CardBg, BorderBrush = CardBorder, BorderThickness = new(1),
-            CornerRadius = new(10), Padding = padding ?? new(14),
-            Margin = margin ?? new(0), SnapsToDevicePixels = true
-        };
-        card.MouseEnter += (_, _) =>
-        {
-            card.Background = new SolidColorBrush(Color.FromRgb(0x1E, 0x20, 0x30)); // slightly brighter
-            card.BorderBrush = new SolidColorBrush(Color.FromRgb(0x4A, 0x5A, 0x7A));
-        };
-        card.MouseLeave += (_, _) =>
-        {
-            card.Background = CardBg;
-            card.BorderBrush = CardBorder;
+            Style = FindResource("GlassCardHover") as Style,
+            Padding = padding ?? new(14),
+            Margin = margin ?? new(0),
+            SnapsToDevicePixels = true
         };
         return card;
     }
@@ -497,64 +548,69 @@ public partial class MainWindow : Window
         var panel = PagePanel;
         panel.Children.Add(new TextBlock
         {
-            Text = "Phân tích dung lượng ổ đĩa — hiển thị trực quan dạng treemap.",
-            Style = PageSubtitle
+            Text = "Phân tích dung lượng ổ đĩa — hiển thị trực quan dạng treemap, hỗ trợ cách ly & xóa.",
+            Foreground = Secondary, FontSize = 12.5, Margin = new Thickness(0, 0, 0, 18)
         });
 
-        var drivesPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new(0, 0, 0, 10) };
-        var driveCombo = new ComboBox { Width = 80, Margin = new Thickness(0, 0, 10, 0) };
+        // Control bar
+        var cardHeader = StyledCard(padding: new Thickness(16, 12, 16, 12), margin: new Thickness(0, 0, 0, 16));
+        var drivesPanel = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        var driveCombo = new ComboBox { Width = 100, Margin = new Thickness(0, 0, 12, 0), Style = FindResource("ModernComboBox") as Style };
         foreach (var d in System.IO.DriveInfo.GetDrives().Where(d => d.IsReady && d.DriveType == System.IO.DriveType.Fixed))
             driveCombo.Items.Add(d.Name.TrimEnd('\\'));
         driveCombo.SelectedIndex = 0;
         drivesPanel.Children.Add(driveCombo);
 
-        var scanBtn = new Button { Content = " Scan", Width = 100, Margin = new Thickness(0, 0, 10, 0) };
-        scanBtn.Style = PrimaryBtn;
-        var cancelBtn = new Button { Content = "⏹ Cancel", Width = 80, IsEnabled = false };
+        var scanBtn = new Button { Content = "⚡ Quét Ổ Đĩa", Width = 120, Margin = new Thickness(0, 0, 10, 0), Style = FindResource("BtnPrimary") as Style ?? PrimaryBtn };
+        var cancelBtn = new Button { Content = "⏹ Hủy Quét", Width = 100, IsEnabled = false, Style = FindResource("BtnSecondary") as Style ?? SecondaryBtn };
         drivesPanel.Children.Add(scanBtn);
         drivesPanel.Children.Add(cancelBtn);
-        panel.Children.Add(drivesPanel);
+        cardHeader.Child = drivesPanel;
+        panel.Children.Add(cardHeader);
 
         var statusLabel = new TextBlock
         {
-            Text = "Sẵn sàng.",
+            Text = "Sẵn sàng quét đĩa.",
             Style = StatusText
         };
         panel.Children.Add(statusLabel);
 
         var resultsList = new ListBox
         {
-            MaxHeight = 200,
+            MaxHeight = 220,
+            Style = FindResource("ModernListBox") as Style,
             Background = CardBg,
             Foreground = Primary
         };
         panel.Children.Add(resultsList);
 
-        // Treemap
-        var treemap = new TreemapControl { Height = 280, Margin = new Thickness(0, 12, 0, 0) };
+        // Treemap Visualizer
+        var treemap = new TreemapControl { Height = 290, Margin = new Thickness(0, 14, 0, 0) };
         panel.Children.Add(treemap);
 
         // Store scan results for actions
         List<ScanItem>? _scanResults = null;
 
-        // Action buttons (hidden until scan completes)
-        var actionPanel = new StackPanel
+        // Action buttons dock bar (hidden until scan completes)
+        var actionCard = new Border
         {
-            Orientation = Orientation.Horizontal,
-            Margin = new Thickness(0, 12, 0, 0),
+            Style = FindResource("GlassCard") as Style,
+            Padding = new Thickness(16, 10, 16, 10),
+            Margin = new Thickness(0, 14, 0, 0),
             Visibility = Visibility.Collapsed
         };
-        var quarantineBtn = new Button { Content = " Quarantine Selected", Width = 160, Margin = new Thickness(0, 0, 10, 0) };
-        quarantineBtn.Style = PrimaryBtn;
-        var deleteBtn = new Button { Content = "️ Delete Selected", Width = 140, Margin = new Thickness(0, 0, 10, 0) };
-        deleteBtn.ApplyTemplate();
-        try { deleteBtn.Style = DangerBtn; } catch { }
-        var openBtn = new Button { Content = " Open Folder", Width = 120 };
-        openBtn.Style = PrimaryBtn;
+        var actionPanel = new StackPanel
+        {
+            Orientation = Orientation.Horizontal
+        };
+        var quarantineBtn = new Button { Content = "📦 Cách Ly Mục Chọn", Width = 170, Margin = new Thickness(0, 0, 10, 0), Style = FindResource("BtnPrimary") as Style ?? PrimaryBtn };
+        var deleteBtn = new Button { Content = "🗑️ Xóa Mục Chọn", Width = 150, Margin = new Thickness(0, 0, 10, 0), Style = FindResource("BtnDanger") as Style ?? DangerBtn };
+        var openBtn = new Button { Content = "📁 Mở Thư Mục", Width = 130, Style = FindResource("BtnSecondary") as Style ?? SecondaryBtn };
         actionPanel.Children.Add(quarantineBtn);
         actionPanel.Children.Add(deleteBtn);
         actionPanel.Children.Add(openBtn);
-        panel.Children.Add(actionPanel);
+        actionCard.Child = actionPanel;
+        panel.Children.Add(actionCard);
 
         scanBtn.Click += async (_, _) =>
         {
@@ -581,10 +637,10 @@ public partial class MainWindow : Window
                     resultsList.Items.Add(
                         $"{icon} {item.SizeFormatted,10}  {item.Name}  {item.Suggestion}");
                 }
-                statusLabel.Text = $"Found {items.Count} items. Total: {ScanItem.FormatSize(items.Sum(i => i.SizeBytes))}";
+                statusLabel.Text = $"Tìm thấy {items.Count} mục. Tổng: {ScanItem.FormatSize(items.Sum(i => i.SizeBytes))}";
                 treemap.Items = items.Where(i => i.SizeBytes > 0).OrderByDescending(i => i.SizeBytes).Take(100).ToList();
                 _scanResults = items;
-                actionPanel.Visibility = Visibility.Visible;
+                actionCard.Visibility = Visibility.Visible;
             }
             catch (OperationCanceledException) { statusLabel.Text = "Đã hủy quét."; }
             catch (Exception ex) { statusLabel.Text = $"Lỗi: {ex.Message}"; }
@@ -597,19 +653,21 @@ public partial class MainWindow : Window
             if (resultsList.SelectedIndex < 0 || _scanResults == null ||
                 resultsList.SelectedIndex >= Math.Min(_scanResults.Count, 30)) return;
             var item = _scanResults[resultsList.SelectedIndex];
-            if (!Directory.Exists(item.Path)) return;
+            if (!Directory.Exists(item.Path) && !File.Exists(item.Path)) return;
 
             var (action, risk, _) = _ruleEngine.Evaluate(item.Path, item.SizeBytes);
             if (action == ItemAction.Block)
             {
-                MessageBox.Show($" Cannot quarantine: blocked by rule.\n{_ruleEngine.Evaluate(item.Path, item.SizeBytes)}", "Blocked");
+                MessageBox.Show($"Bị chặn: Quy tắc bảo vệ hệ thống không cho phép cách ly mục này.", "Đã Bị Chặn", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             var qDir = Path.Combine(_quarantineDir, $"{Guid.NewGuid():N}_{item.Name}");
             try
             {
-                Directory.Move(item.Path, qDir);
+                if (Directory.Exists(item.Path)) Directory.Move(item.Path, qDir);
+                else if (File.Exists(item.Path)) File.Move(item.Path, qDir);
+
                 await _storage.SaveQuarantineItemAsync(new QuarantineItem
                 {
                     OriginalPath = item.Path,
@@ -623,10 +681,10 @@ public partial class MainWindow : Window
                     SourceModule = "DiskAnalyzer",
                     Risk = risk
                 });
-                statusLabel.Text = $" Quarantined: {item.Name} ({item.SizeFormatted}) — restore in Quarantine tab within 14 days";
+                statusLabel.Text = $"📦 Đã cách ly: {item.Name} ({item.SizeFormatted}) — Có thể khôi phục tại trang Cách Ly trong 14 ngày";
                 await RefreshDashboardAsync();
             }
-            catch (Exception ex) { statusLabel.Text = $"Lỗi: {ex.Message}"; }
+            catch (Exception ex) { statusLabel.Text = $"Lỗi cách ly: {ex.Message}"; }
         };
 
         // Delete selected folder (permanently)
@@ -635,24 +693,25 @@ public partial class MainWindow : Window
             if (resultsList.SelectedIndex < 0 || _scanResults == null ||
                 resultsList.SelectedIndex >= Math.Min(_scanResults.Count, 30)) return;
             var item = _scanResults[resultsList.SelectedIndex];
-            if (!Directory.Exists(item.Path)) return;
+            if (!Directory.Exists(item.Path) && !File.Exists(item.Path)) return;
 
             var (action, risk, _) = _ruleEngine.Evaluate(item.Path, item.SizeBytes);
             if (action == ItemAction.Block)
             {
-                MessageBox.Show($" Cannot delete: blocked by rule.", "Blocked");
+                MessageBox.Show($"Bị chặn: Quy tắc bảo vệ không cho phép xóa mục này.", "Đã Bị Chặn", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             var result = MessageBox.Show(
-                $"⚠️ Permanently delete:\n\n{item.Name}\n{item.SizeFormatted}\n\n{item.Path}\n\nThis CANNOT be undone!",
-                "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                $"⚠️ Xác nhận xóa vĩnh viễn:\n\n{item.Name}\nDung lượng: {item.SizeFormatted}\n\nĐường dẫn: {item.Path}\n\nHành động này không thể hoàn tác!",
+                "Xác Nhận Xóa Vĩnh Viễn", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (result != MessageBoxResult.Yes) return;
 
             try
             {
-                Directory.Delete(item.Path, true);
-                statusLabel.Text = $"️ Deleted: {item.Name} ({item.SizeFormatted})";
+                if (Directory.Exists(item.Path)) Directory.Delete(item.Path, true);
+                else if (File.Exists(item.Path)) File.Delete(item.Path);
+                statusLabel.Text = $"🗑️ Đã xóa: {item.Name} ({item.SizeFormatted})";
                 await _storage.SaveCleanHistoryAsync(new CleanHistory
                 {
                     CleanDate = DateTime.Now,
@@ -662,17 +721,28 @@ public partial class MainWindow : Window
                 });
                 await RefreshDashboardAsync();
             }
-            catch (Exception ex) { statusLabel.Text = $"Lỗi: {ex.Message}"; }
+            catch (Exception ex) { statusLabel.Text = $"Lỗi xóa: {ex.Message}"; }
         };
 
-        // Open folder in Explorer
         openBtn.Click += (_, _) =>
         {
             if (resultsList.SelectedIndex < 0 || _scanResults == null ||
                 resultsList.SelectedIndex >= Math.Min(_scanResults.Count, 30)) return;
             var item = _scanResults[resultsList.SelectedIndex];
-            if (Directory.Exists(item.Path))
-                System.Diagnostics.Process.Start("explorer.exe", $"\"{item.Path}\"");
+            try
+            {
+                if (Directory.Exists(item.Path))
+                    System.Diagnostics.Process.Start("explorer.exe", item.Path);
+                else if (File.Exists(item.Path))
+                    System.Diagnostics.Process.Start("explorer.exe", $"/select,\"{item.Path}\"");
+            }
+            catch (Exception ex) { statusLabel.Text = $"Lỗi mở thư mục: {ex.Message}"; }
+        };
+
+        cancelBtn.Click += (_, _) =>
+        {
+            _cts?.Cancel();
+            statusLabel.Text = "Đang hủy...";
         };
     }
 
@@ -681,21 +751,19 @@ public partial class MainWindow : Window
         var panel = PagePanel;
         panel.Children.Add(new TextBlock
         {
-            Text = "Dọn rác an toàn. Dọn Nhanh: temp/logs/thùng rác. Dọn Sâu: file sót, file cũ.",
-            Style = PageSubtitle
+            Text = "Dọn file rác an toàn nhiều lớp bảo vệ. Dọn Nhanh: temp/logs/thùng rác. Dọn Sâu: file sót, file cũ lớn.",
+            Foreground = Secondary, FontSize = 12.5, Margin = new Thickness(0, 0, 0, 18)
         });
 
-        var btns = new StackPanel { Orientation = Orientation.Horizontal, Margin = new(0, 0, 0, 10) };
-        var quickBtn = new Button { Content = " Quick Clean", Width = 120, Margin = new Thickness(0, 0, 10, 0) };
-        quickBtn.Style = PrimaryBtn;
-        var deepBtn = new Button { Content = " Deep Clean", Width = 120, Margin = new Thickness(0, 0, 10, 0) };
-        deepBtn.Style = PrimaryBtn;
-        var previewBtn = new Button { Content = " Preview", Width = 100, Margin = new Thickness(0, 0, 10, 0) };
-        previewBtn.Style = PrimaryBtn;
-        btns.Children.Add(quickBtn);
-        btns.Children.Add(deepBtn);
-        btns.Children.Add(previewBtn);
-        panel.Children.Add(btns);
+        // Mode Card Bar
+        var modeCard = StyledCard(padding: new Thickness(16, 12, 16, 12), margin: new Thickness(0, 0, 0, 16));
+        var btns = new StackPanel { Orientation = Orientation.Horizontal };
+        var quickBtn = new Button { Content = "⚡ Dọn Nhanh", Width = 130, Margin = new Thickness(0, 0, 10, 0), Style = FindResource("BtnSuccess") as Style ?? SuccessBtn };
+        var deepBtn  = new Button { Content = "🧹 Dọn Sâu",  Width = 130, Margin = new Thickness(0, 0, 10, 0), Style = FindResource("BtnPrimary") as Style ?? PrimaryBtn };
+        var previewBtn = new Button { Content = "👁 Xem Trước", Width = 120, Margin = new Thickness(0, 0, 10, 0), Style = FindResource("BtnSecondary") as Style ?? SecondaryBtn };
+        btns.Children.Add(quickBtn); btns.Children.Add(deepBtn); btns.Children.Add(previewBtn);
+        modeCard.Child = btns;
+        panel.Children.Add(modeCard);
 
         var resultLabel = new TextBlock
         {
@@ -707,7 +775,8 @@ public partial class MainWindow : Window
 
         var resultsList = new ListBox
         {
-            MaxHeight = 350,
+            MaxHeight = 360,
+            Style = FindResource("ModernListBox") as Style,
             Background = CardBg,
             Foreground = Primary
         };
@@ -749,8 +818,8 @@ public partial class MainWindow : Window
             var (freed, processed, errors) = await cleaner.CleanAsync(quickItems,
                 new Progress<string>(s => resultLabel.Text = s), _cts.Token);
 
-            resultLabel.Text = $"✅ Done! Freed {ScanItem.FormatSize(freed)}. {processed} items cleaned. Errors: {errors.Count}";
-            resultsList.Items.Add($"Freed: {ScanItem.FormatSize(freed)}");
+            resultLabel.Text = $"✅ Hoàn tất! Giải phóng {ScanItem.FormatSize(freed)}. Đã dọn {processed} mục. Lỗi: {errors.Count}";
+            resultsList.Items.Add($"Giải phóng: {ScanItem.FormatSize(freed)}");
             foreach (var item in quickItems.Take(50))
                 resultsList.Items.Add($"  ✓ {item.Category}: {item.Name} ({item.SizeFormatted})");
             quickBtn.IsEnabled = true;
@@ -793,7 +862,7 @@ public partial class MainWindow : Window
                 return;
             }
 
-            resultLabel.Text = $"Found {deepItems.Count} items. Review carefully before cleaning.";
+            resultLabel.Text = $"Tìm thấy {deepItems.Count} mục. Hãy xem xét kỹ trước khi dọn.";
             foreach (var item in deepItems)
                 resultsList.Items.Add(
                     $"  [{item.Risk}] {item.Category}: {item.Name} ({item.SizeFormatted}) - {item.Suggestion}");
@@ -801,7 +870,7 @@ public partial class MainWindow : Window
             // Add a confirm clean button
             var confirmBtn = new Button
             {
-                Content = $"⚠️ Clean {deepItems.Count} Items",
+                Content = $"⚠️ Dọn {deepItems.Count} Mục Đã Chọn",
                 Width = 180,
                 Margin = new Thickness(0, 12, 0, 0)
             };
@@ -814,7 +883,7 @@ public partial class MainWindow : Window
                 var cleaner = new DeepCleaner(_ruleEngine, _riskEngine, _storage);
                 var (freed, processed, errors) = await cleaner.CleanAsync(deepItems,
                     new Progress<string>(s => resultLabel.Text = s), _cts!.Token);
-                resultLabel.Text = $"✅ Deep clean done! Freed {ScanItem.FormatSize(freed)}. {processed} items. Quarantined some high-risk items.";
+                resultLabel.Text = $"✅ Dọn sâu hoàn tất! Giải phóng {ScanItem.FormatSize(freed)}. {processed} mục. Đã cách ly các mục rủi ro cao.";
                 panel.Children.Remove(confirmBtn);
                 deepBtn.IsEnabled = true;
                 await RefreshDashboardAsync();
@@ -827,8 +896,8 @@ public partial class MainWindow : Window
         {
             resultsList.Items.Clear();
             previewBtn.IsEnabled = false;
-            resultLabel.Text = " DRY RUN — Scanning...";
-            ShowLoading("Preview scanning (no files will be deleted)...");
+            resultLabel.Text = " 👁 XEM TRƯỚC — Đang quét...";
+            ShowLoading("Đang xem trước (không có file nào bị xóa)...");
 
             _cts = new CancellationTokenSource();
             var scanner = new DiskScanner(_ruleEngine, _riskEngine);
@@ -838,7 +907,7 @@ public partial class MainWindow : Window
 
             var progress = new Progress<(string Status, int Progress)>(p =>
             {
-                Dispatcher.Invoke(() => { resultLabel.Text = " DRY RUN — " + p.Status; ScanProgress.Value = p.Progress; });
+                Dispatcher.Invoke(() => { resultLabel.Text = " 👁 XEM TRƯỚC — " + p.Status; ScanProgress.Value = p.Progress; });
             });
             var items = await scanner.ScanAsync(drives, progress, _cts.Token);
             HideLoading();
@@ -848,15 +917,15 @@ public partial class MainWindow : Window
             var warnItems = items.Where(i => i.Risk == RiskLevel.Medium).ToList();
             var blockedItems = items.Where(i => i.Risk >= RiskLevel.High || i.RecommendedAction == ItemAction.Block).ToList();
 
-            resultsList.Items.Add($"━━━ DRY RUN PREVIEW — No files were deleted ━━━");
+            resultsList.Items.Add($"━━━ 👁 XEM TRƯỚC (DRY RUN) — Không có file nào bị xóa ━━━");
             resultsList.Items.Add($"");
-            resultsList.Items.Add($"✅ An toàn: {safeItems.Count} items ({ScanItem.FormatSize(safeItems.Sum(i => i.SizeBytes))})");
-            resultsList.Items.Add($"⚠️  Cần xem lại: {warnItems.Count} items ({ScanItem.FormatSize(warnItems.Sum(i => i.SizeBytes))})");
-            resultsList.Items.Add($" Blocked by rules: {blockedItems.Count} items ({ScanItem.FormatSize(blockedItems.Sum(i => i.SizeBytes))})");
+            resultsList.Items.Add($"✅ An toàn: {safeItems.Count} mục ({ScanItem.FormatSize(safeItems.Sum(i => i.SizeBytes))})");
+            resultsList.Items.Add($"⚠️ Cần xem lại: {warnItems.Count} mục ({ScanItem.FormatSize(warnItems.Sum(i => i.SizeBytes))})");
+            resultsList.Items.Add($"🔒 Bị chặn bởi quy tắc: {blockedItems.Count} mục ({ScanItem.FormatSize(blockedItems.Sum(i => i.SizeBytes))})");
             resultsList.Items.Add($"");
-            resultsList.Items.Add($" Total scannable: {ScanItem.FormatSize(items.Sum(i => i.SizeBytes))} across {items.Count} items");
+            resultsList.Items.Add($" Tổng khả năng dọn: {ScanItem.FormatSize(items.Sum(i => i.SizeBytes))} trên {items.Count} mục");
             resultsList.Items.Add($"");
-            resultsList.Items.Add($" Run Quick Clean or Deep Clean to actually remove these files.");
+            resultsList.Items.Add($" Chạy Dọn Nhanh hoặc Dọn Sâu để thực hiện xóa thực sự.");
 
             foreach (var item in safeItems.Take(20))
                 resultsList.Items.Add($"  ✅ [{item.Category}] {item.Name} ({item.SizeFormatted})");
@@ -875,26 +944,17 @@ public partial class MainWindow : Window
         var panel = PagePanel;
         panel.Children.Add(new TextBlock
         {
-            Text = "Tìm file lớn (>100MB) đang chiếm dung lượng.",
-            Style = PageSubtitle
+            Text = "Tìm file lớn (>100 MB) đang chiếm nhiều dung lượng ổ đĩa.",
+            Foreground = Secondary, FontSize = 12.5, Margin = new Thickness(0, 0, 0, 18)
         });
-        var scanBtn = new Button { Content = " Find Large Files", Width = 140, Margin = new(0, 0, 0, 10) };
+        var scanBtn = new Button { Content = "🔍 Tìm File Lớn", Width = 150, Margin = new(0, 0, 0, 12) };
         scanBtn.Style = PrimaryBtn;
         panel.Children.Add(scanBtn);
 
-        var statusLabel = new TextBlock
-        {
-            Text = "Sẵn sàng.",
-            Foreground = Secondary
-        };
+        var statusLabel = new TextBlock { Text = "Sẵn sàng.", Foreground = Secondary, Margin = new(0, 0, 0, 8) };
         panel.Children.Add(statusLabel);
 
-        var results = new ListBox
-        {
-            MaxHeight = 400,
-            Background = CardBg,
-            Foreground = Primary
-        };
+        var results = new ListBox { MaxHeight = 400, Style = FindResource("ModernListBox") as Style, Background = CardBg, Foreground = Primary };
         panel.Children.Add(results);
 
         scanBtn.Click += async (_, _) =>
@@ -1257,14 +1317,14 @@ public partial class MainWindow : Window
         var panel = PagePanel;
         panel.Children.Add(new TextBlock
         {
-            Text = "Phan tich cache package manager - npm, pip, NuGet, Go, Docker, Gradle...",
+            Text = "Phân tích cache của các Trình quản lý gói — npm, pip, NuGet, Go, Docker, Gradle...",
             FontSize = 13, Foreground = Secondary, Margin = new(0, 0, 0, 12)
         });
 
-        var scanBtn = MakeBtn(" Quét Package Caches", PrimaryBtn, 180, new(0, 0, 10, 0));
+        var scanBtn = MakeBtn("⚡ Quét Package Caches", PrimaryBtn, 200, new(0, 0, 10, 0));
         panel.Children.Add(scanBtn);
 
-        var statusLabel = Label("Sẵn sàng. Nhấn Quét de phan tich.", Secondary);
+        var statusLabel = Label("Sẵn sàng. Nhấn Quét để phân tích.", Secondary);
         panel.Children.Add(statusLabel);
 
         var resultsCard = StyledCard(padding: new(12), margin: new(0, 12, 0, 0));
@@ -1296,14 +1356,14 @@ public partial class MainWindow : Window
 
                 if (items.Count == 0)
                 {
-                    statusLabel.Text = "Không tìm thấy package cache nao dang ke.";
+                    statusLabel.Text = "Không tìm thấy package cache nào đáng kể.";
                     scanBtn.IsEnabled = true;
                     return;
                 }
 
                 long total = items.Sum(i => i.SizeBytes);
                 statusLabel.Text = $"Tìm thấy {items.Count} package caches ({ScanItem.FormatSize(total)})";
-                summaryLabel.Text = $"Total reclaimable: {ScanItem.FormatSize(total)} across {items.Count} caches";
+                summaryLabel.Text = $"Tổng có thể giải phóng: {ScanItem.FormatSize(total)} từ {items.Count} bộ nhớ tạm";
 
                 foreach (var item in items)
                 {
@@ -1337,11 +1397,11 @@ public partial class MainWindow : Window
         var panel = PagePanel;
         panel.Children.Add(new TextBlock
         {
-            Text = "Phát hiện project cu - quet git history va tim build caches co the don.",
+            Text = "Phát hiện project cũ — quét lịch sử git và tìm bộ nhớ tạm build (bin/obj, node_modules) có thể dọn.",
             FontSize = 13, Foreground = Secondary, Margin = new(0, 0, 0, 12)
         });
 
-        var scanBtn = MakeBtn(" Quét Projects", PrimaryBtn, 180, new(0, 0, 10, 0));
+        var scanBtn = MakeBtn("⚡ Quét Projects", PrimaryBtn, 180, new(0, 0, 10, 0));
         panel.Children.Add(scanBtn);
 
         var statusLabel = Label("Sẵn sàng. Quét ~/source, ~/projects, ~/dev, GitHub...", Secondary);
@@ -1361,7 +1421,7 @@ public partial class MainWindow : Window
         {
             scanBtn.IsEnabled = false;
             resultsStack.Children.Clear();
-            ShowLoading("Đang quét thu muc project...");
+            ShowLoading("Đang quét thư mục project...");
 
             try
             {
@@ -1376,20 +1436,20 @@ public partial class MainWindow : Window
 
                 if (items.Count == 0)
                 {
-                    statusLabel.Text = "Không tìm thấy project nao de don.";
+                    statusLabel.Text = "Không tìm thấy project nào để dọn.";
                     scanBtn.IsEnabled = true;
                     return;
                 }
 
                 int staleCount = items.Count(i => i.Risk <= RiskLevel.Low);
                 long total = items.Sum(i => i.SizeBytes);
-                statusLabel.Text = $"Tìm thấy {items.Count} projects ({ScanItem.FormatSize(total)} reclaimable)";
-                summaryLabel.Text = $"{staleCount} projects stale (>60d) - {ScanItem.FormatSize(total)} co the don";
+                statusLabel.Text = $"Tìm thấy {items.Count} projects ({ScanItem.FormatSize(total)} có thể thu hồi)";
+                summaryLabel.Text = $"{staleCount} projects không dùng (>60 ngày) - {ScanItem.FormatSize(total)} có thể dọn";
 
                 foreach (var item in items)
                 {
                     var isStale = item.Risk <= RiskLevel.Low;
-                    var badge = isStale ? "STALE" : "ACTIVE";
+                    var badge = isStale ? "CŨ (>60d)" : "HOẠT ĐỘNG";
                     var badgeColor = isStale ? Danger : Success;
 
                     var card = StyledCard(padding: new(12, 8, 12, 8), margin: new(0, 0, 0, 4));
@@ -1411,7 +1471,7 @@ public partial class MainWindow : Window
                     if (!string.IsNullOrEmpty(item.AppOrigin))
                         stack.Children.Add(new TextBlock
                         {
-                            Text = $"    {item.AppOrigin}  .  {item.SizeFormatted} reclaimable",
+                            Text = $"    {item.AppOrigin}  .  {item.SizeFormatted} có thể dọn",
                             FontSize = 11, Foreground = Secondary, Margin = new(0, 3, 0, 0)
                         });
 
@@ -1551,30 +1611,25 @@ private async void BuildPerformancePage()
         panel.Children.Add(new TextBlock
         {
             Text = $"Tìm thấy {entries.Count} mục khởi động. Tắt bớt để tăng tốc khởi động máy.",
-            Foreground = Secondary,
-            Margin = new(0, 0, 0, 10)
+            Foreground = Secondary, FontSize = 12.5, Margin = new(0, 0, 0, 14)
         });
 
         var entryList = new ListBox
         {
             MaxHeight = 400,
+            Style = FindResource("ModernListBox") as Style,
             Background = CardBg,
             Foreground = Primary
         };
         foreach (var e in entries)
         {
-            var impact = e.Impact switch { "High" => "", "Medium" => "", _ => "" };
-            entryList.Items.Add($"{impact} [{e.Impact,-6}] {e.Name} - {e.Publisher} ({e.Location})");
+            var impact = e.Impact switch { "High" => "🔴", "Medium" => "🟡", _ => "🟢" };
+            entryList.Items.Add($"{impact}  [{e.Impact,-6}]  {e.Name}  —  {e.Publisher}  ({e.Location})");
         }
         panel.Children.Add(entryList);
 
-        var disableBtn = new Button
-        {
-            Content = "⏸ Disable Selected",
-            Width = 140,
-            Margin = new Thickness(0, 12, 0, 0)
-        };
-        disableBtn.Style = PrimaryBtn;
+        var disableBtn = new Button { Content = "⏸  Tắt Mục Chọn", Width = 150, Margin = new Thickness(0, 14, 0, 0) };
+        disableBtn.Style = DangerBtn;
         disableBtn.Click += async (_, _) =>
         {
             if (entryList.SelectedIndex < 0 || entryList.SelectedIndex >= entries.Count) return;
@@ -1622,58 +1677,78 @@ private async void BuildPerformancePage()
 
         panel.Children.Add(new TextBlock
         {
-            Text = $"{active.Count} items in quarantine ({ScanItem.FormatSize(active.Sum(i => i.SizeBytes))}). " +
-                   "File được giữ 14 ngày trước khi xóa vĩnh viễn.",
-            Foreground = Secondary,
-            Margin = new(0, 0, 0, 10)
+            Text = $"{active.Count} file đang được cách ly — {ScanItem.FormatSize(active.Sum(i => i.SizeBytes))} tổng. " +
+                   "Tự động xóa sau 14 ngày. Bạn có thể khôi phục bất cứ lúc nào.",
+            Foreground = Secondary, FontSize = 12.5, Margin = new(0, 0, 0, 18)
         });
+
+        // Summary stats bar
+        var statsCard = StyledCard(padding: new Thickness(16, 12, 16, 12), margin: new Thickness(0, 0, 0, 14));
+        var statsRow = new StackPanel { Orientation = Orientation.Horizontal };
+        void AddStat(string label, string val, SolidColorBrush color)
+        {
+            var sp = new StackPanel { Margin = new Thickness(0, 0, 32, 0) };
+            sp.Children.Add(new TextBlock { Text = val, FontSize = 22, FontWeight = FontWeights.Bold, Foreground = color });
+            sp.Children.Add(new TextBlock { Text = label, FontSize = 11, Foreground = Secondary });
+            statsRow.Children.Add(sp);
+        }
+        AddStat("Đang cách ly", $"{active.Count} mục", Warning);
+        AddStat("Tổng dung lượng", ScanItem.FormatSize(active.Sum(i => i.SizeBytes)), Danger);
+        AddStat("Sẽ xóa sau", "14 ngày", Muted);
+        statsCard.Child = statsRow;
+        panel.Children.Add(statsCard);
 
         var qList = new ListBox
         {
             MaxHeight = 350,
-            Background = CardBg,
-            Foreground = Primary
+            Style = FindResource("ModernListBox") as Style,
+            Background = CardBg, Foreground = Primary
         };
         foreach (var q in active)
             qList.Items.Add(
-                $"[{q.DaysRemaining}d left] {q.SizeFormatted,10} | {q.FileName} - {q.Reason} ({q.Risk})");
+                $"🗂  [{q.DaysRemaining} ngày còn lại]  {q.SizeFormatted,-10}  {q.FileName}  —  {q.Reason}  ({q.Risk})");
         panel.Children.Add(qList);
 
-        var btnPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 12, 0, 0) };
-        var restoreBtn = new Button { Content = "↩️ Restore Selected", Width = 140, Margin = new Thickness(0, 0, 10, 0) };
-        restoreBtn.Style = PrimaryBtn;
-        var deleteBtn = new Button { Content = "️ Delete Permanently", Width = 160 };
+        var btnPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 14, 0, 0) };
+        var restoreBtn = new Button { Content = "↩  Khôi Phục Mục Chọn", Width = 170, Margin = new Thickness(0, 0, 10, 0) };
+        restoreBtn.Style = SuccessBtn;
+        var deleteBtn = new Button { Content = "🗑  Xóa Vĩnh Viễn", Width = 150 };
         deleteBtn.Style = DangerBtn;
-
-        btnPanel.Children.Add(restoreBtn);
-        btnPanel.Children.Add(deleteBtn);
+        btnPanel.Children.Add(restoreBtn); btnPanel.Children.Add(deleteBtn);
         panel.Children.Add(btnPanel);
 
         restoreBtn.Click += async (_, _) =>
         {
             if (qList.SelectedIndex < 0 || qList.SelectedIndex >= active.Count) return;
             var q = active[qList.SelectedIndex];
-            if (File.Exists(q.QuarantinePath) || Directory.Exists(q.QuarantinePath))
+            try
             {
-                var destDir = Path.GetDirectoryName(q.OriginalPath);
-                if (destDir != null) Directory.CreateDirectory(destDir);
-                if (File.Exists(q.QuarantinePath))
-                    File.Move(q.QuarantinePath, q.OriginalPath);
-                else
-                    Directory.Move(q.QuarantinePath, q.OriginalPath);
+                if (File.Exists(q.QuarantinePath) || Directory.Exists(q.QuarantinePath))
+                {
+                    var destDir = Path.GetDirectoryName(q.OriginalPath);
+                    if (destDir != null) Directory.CreateDirectory(destDir);
+                    if (File.Exists(q.QuarantinePath))
+                        File.Move(q.QuarantinePath, q.OriginalPath, true);
+                    else
+                        Directory.Move(q.QuarantinePath, q.OriginalPath);
+                }
+                await _storage.RemoveQuarantineItemAsync(q.Id);
+                MessageBox.Show("Khôi phục file thành công!", "Đã Khôi Phục", MessageBoxButton.OK, MessageBoxImage.Information);
+                BuildQuarantinePage();
+                await RefreshDashboardAsync();
             }
-            await _storage.RemoveQuarantineItemAsync(q.Id);
-            MessageBox.Show("File restored successfully.", "Restored");
-            BuildQuarantinePage();
-            await RefreshDashboardAsync();
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Không thể khôi phục file: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         };
 
         deleteBtn.Click += async (_, _) =>
         {
             if (qList.SelectedIndex < 0 || qList.SelectedIndex >= active.Count) return;
             var q = active[qList.SelectedIndex];
-            if (MessageBox.Show($"Permanently delete {q.FileName}?", "Confirm",
-                MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            if (MessageBox.Show($"Xóa vĩnh viễn {q.FileName}?", "Xác Nhận Xóa",
+                MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
             {
                 try
                 {
@@ -1705,10 +1780,14 @@ private async void BuildPerformancePage()
     private void BuildSettingsPage()
     {
         var panel = PagePanel;
-        panel.Children.Add(new TextBlock { Text = "Cài đặt, quy tắc, VS Code và thông tin ứng dụng.", Style = PageSubtitle });
+        panel.Children.Add(new TextBlock
+        {
+            Text = "Quản lý quy tắc, rule packs cộng đồng, nhật ký hoạt động và thông tin ứng dụng.",
+            Foreground = Secondary, FontSize = 12.5, Margin = new Thickness(0, 0, 0, 18)
+        });
 
         var tabRow = new WrapPanel { Margin = new(0, 0, 0, 12) };
-        var tabs = new[] { "📋 Quy Tắc", "📦 Packs", "⬇ VS Code", "📄 Hoạt Động", "ℹ️ About" };
+        var tabs = new[] { "📋 Quy Tắc", "📦 Packs", "⬇ VS Code", "📄 Hoạt Động", "ℹ️ Giới Thiệu" };
         var tabBtns = new List<Button>();
         var contentPanel = new StackPanel();
         panel.Children.Add(tabRow);
@@ -1928,37 +2007,53 @@ private async void BuildPerformancePage()
 
     private void BuildAboutTab(StackPanel p)
     {
-        p.Children.Add(new TextBlock { Text = "Windows Health Manager", FontSize = 18, FontWeight = FontWeights.Bold, Foreground = Primary, Margin = new(0, 0, 0, 4) });
-        p.Children.Add(new TextBlock { Text = "v2.0.0 — MIT License — Đào Văn Phong", FontSize = 13, Foreground = Accent });
-        p.Children.Add(new TextBlock { Text = "Developer Disk Manager cho Windows. Không telemetry, không quảng cáo.", FontSize = 11.5, Foreground = Secondary, Margin = new(0, 4, 0, 12) });
+        var headerCard = StyledCard(padding: new Thickness(20), margin: new Thickness(0, 8, 0, 14));
+        var headerStack = new StackPanel();
+        headerStack.Children.Add(new TextBlock { Text = "Windows Health Manager", FontSize = 20, FontWeight = FontWeights.Bold, Foreground = Primary, Margin = new(0, 0, 0, 4) });
+        headerStack.Children.Add(new TextBlock { Text = "v2.0.0  ·  MIT License  ·  Đào Văn Phong", FontSize = 13, Foreground = Accent, Margin = new(0, 0, 0, 6) });
+        headerStack.Children.Add(new TextBlock { Text = "Developer Disk Manager cho Windows. Không telemetry, không quảng cáo, không internet.", FontSize = 11.5, Foreground = Secondary, Margin = new(0, 0, 0, 16) });
 
-        var btnRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new(0, 0, 0, 12) };
-        var updateBtn = MakeBtn("  Kiểm Tra Cập Nhật", PrimaryBtn, 170, new(0, 0, 8, 0));
+        var btnRow = new StackPanel { Orientation = Orientation.Horizontal };
+        var updateBtn = MakeBtn("🔄 Kiểm Tra Cập Nhật", PrimaryBtn, 180, new(0, 0, 8, 0));
         updateBtn.Click += CheckForUpdates_Click;
-        btnRow.Children.Add(updateBtn);
-        var reportBtn = MakeBtn("  Xem Báo Cáo Tuần", SecondaryBtn, 170);
-        reportBtn.Click += (_, _) =>
-        {
-            try
-            {
-                var rg = App.Services.GetRequiredService<ReportGenerator>();
-                rg.ShowHtmlReportAsync();
-            }
-            catch { }
-        };
-        btnRow.Children.Add(reportBtn);
-        p.Children.Add(btnRow);
+        var reportBtn = MakeBtn("📊 Báo Cáo Tuần", SecondaryBtn, 160);
+        reportBtn.Click += (_, _) => { try { App.Services.GetRequiredService<ReportGenerator>().ShowHtmlReportAsync(); } catch { } };
+        btnRow.Children.Add(updateBtn); btnRow.Children.Add(reportBtn);
+        headerStack.Children.Add(btnRow);
+        headerCard.Child = headerStack;
+        p.Children.Add(headerCard);
 
-        p.Children.Add(new TextBlock { Text = "github.com/ngphong01/winvitals", FontSize = 10.5, Foreground = Accent, Margin = new(0, 0, 0, 8) });
-        p.Children.Add(new TextBlock { Text = ".NET 9 WPF · LiteDB · Serilog · Clean Architecture + MVVM", FontSize = 10.5, Foreground = Muted });
+        var techCard = StyledCard(padding: new Thickness(16), margin: new Thickness(0, 0, 0, 0));
+        var techStack = new StackPanel();
+        techStack.Children.Add(new TextBlock { Text = "🛠  TECH STACK", FontSize = 11, FontWeight = FontWeights.Bold, Foreground = Muted, Margin = new(0, 0, 0, 8) });
+        foreach (var (icon, tech) in new[] {
+            ("⚡", ".NET 9.0 WPF — Windows Presentation Foundation"),
+            ("💾", "LiteDB — Embedded NoSQL database, zero-config"),
+            ("📝", "Serilog — Structured logging với daily rolling"),
+            ("🏗", "Clean Architecture + MVVM pattern"),
+            ("🔗", "github.com/ngphong01/winvitals")
+        })
+        {
+            techStack.Children.Add(new TextBlock
+            {
+                Text = $"{icon}  {tech}",
+                FontSize = 11.5, Foreground = Secondary, Margin = new(0, 0, 0, 5)
+            });
+        }
+        techCard.Child = techStack;
+        p.Children.Add(techCard);
     }
     private void BuildAutoCleanPage()
     {
         var panel = PagePanel;
-        panel.Children.Add(new TextBlock { Text = "Dọn dẹp tự động và đặt lịch — cài đặt rồi quên.", Style = PageSubtitle });
+        panel.Children.Add(new TextBlock
+        {
+            Text = "Cài đặt lịch dọn dẹp tự động — chọn preset, đặt lịch rồi để hệ thống tự chạy.",
+            Foreground = Secondary, FontSize = 12.5, Margin = new Thickness(0, 0, 0, 18)
+        });
 
         // ── Presets ──
-        panel.Children.Add(new TextBlock { Text = "⚡  CLEAN PRESETS", FontSize = 12, FontWeight = FontWeights.Bold, Foreground = Primary, Margin = new(0, 0, 0, 10) });
+        panel.Children.Add(new TextBlock { Text = "⚡  CLEAN PRESETS", FontSize = 12, FontWeight = FontWeights.Bold, Foreground = Accent, Margin = new(0, 0, 0, 10) });
 
         var presetsWrap = new WrapPanel();
         foreach (var preset in CleanPresets.All)

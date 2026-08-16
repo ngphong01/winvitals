@@ -48,45 +48,36 @@ public class StaleProjectDetector : IScanner
                 var info = AnalyzeProject(dir);
                 Interlocked.Increment(ref done);
 
-                if (info is { IsStale: true, ReclaimableBytes: > 1_048_576 })
+                if (info is not null && info.ReclaimableBytes > 1_048_576)
                 {
-                    items.Add(new ScanItem
+                    // Add items ONLY for specific cache subdirectories, NEVER the project root directory itself!
+                    foreach (var cacheDir in ReclaimableDirs)
                     {
-                        Path = dir,
-                        Name = Path.GetFileName(dir),
-                        SizeBytes = info.ReclaimableBytes,
-                        IsDirectory = true,
-                        Category = ItemCategory.DevCache,
-                        Risk = RiskLevel.Low,
-                        RecommendedAction = ItemAction.WarnDelete,
-                        Suggestion = info.CommitsMonthsAgo > 0
-                            ? $"Project stale ({info.LastCommitDaysAgo} ngày không commit). " +
-                              $"Có thể dọn {ScanItem.FormatSize(info.ReclaimableBytes)} build caches."
-                            : $"Không có git history. {ScanItem.FormatSize(info.ReclaimableBytes)} caches có thể dọn.",
-                        LastModified = info.LastCommitDate,
-                        AppOrigin = info.Framework
-                    });
+                        var cachePath = Path.Combine(dir, cacheDir);
+                        if (!Directory.Exists(cachePath)) continue;
+
+                        var cacheSize = GetDirSizeFast(cachePath);
+                        if (cacheSize < 524_288) continue; // skip small < 512KB caches
+
+                        items.Add(new ScanItem
+                        {
+                            Path = cachePath,
+                            Name = $"{info.Name} / {cacheDir}",
+                            SizeBytes = cacheSize,
+                            IsDirectory = true,
+                            Category = ItemCategory.DevCache,
+                            Risk = RiskLevel.Low,
+                            RecommendedAction = ItemAction.WarnDelete,
+                            Suggestion = $"Cache {cacheDir} thuộc dự án {info.Name} ({info.Framework}). " +
+                                          $"Dọn dẹp an toàn, tự tạo lại khi build/install.",
+                            LastModified = info.LastCommitDate,
+                            AppOrigin = info.Framework
+                        });
+                    }
 
                     progress?.Report((
-                        $"Stale: {info.Name} ({info.Framework}, {info.LastCommitDaysAgo}d)",
+                        $"Analyzed: {info.Name} ({info.Framework}, {info.LastCommitDaysAgo}d)",
                         done * 100 / total));
-                }
-                else if (info is { ReclaimableBytes: > 10_485_760 }) // >10MB caches on active project
-                {
-                    items.Add(new ScanItem
-                    {
-                        Path = dir,
-                        Name = Path.GetFileName(dir),
-                        SizeBytes = info.ReclaimableBytes,
-                        IsDirectory = true,
-                        Category = ItemCategory.DevCache,
-                        Risk = RiskLevel.Medium,
-                        RecommendedAction = ItemAction.WarnDelete,
-                        Suggestion = $"Active project ({info.Framework}). " +
-                                      $"{ScanItem.FormatSize(info.ReclaimableBytes)} in build caches — " +
-                                      $"có thể dọn và rebuild khi cần.",
-                        AppOrigin = info.Framework
-                    });
                 }
             }
             catch { Interlocked.Increment(ref done); }

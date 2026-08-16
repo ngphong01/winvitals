@@ -42,11 +42,11 @@ public class RuleEngine : IRuleEngine
             }
         }
 
-        // Add system-critical built-in rules
+        // Add system-critical built-in rules — ABSOLUTE PROTECTION
         _rules.Add(new Rule
         {
             Id = "sys_windows",
-            Name = "Windows System",
+            Name = "Windows System Files",
             Description = "Protect Windows system files",
             PathPatterns = ["**\\Windows\\System32\\**", "**\\Windows\\SysWOW64\\**",
                           "**\\Windows\\WinSxS\\**", "**\\Windows\\Boot\\**"],
@@ -77,19 +77,22 @@ public class RuleEngine : IRuleEngine
         });
         _rules.Add(new Rule
         {
-            Id = "protect_docs",
-            Name = "User Documents",
-            PathPatterns = ["**\\Documents\\**", "**\\Desktop\\**"],
-            Action = ItemAction.WarnDelete,
-            Risk = RiskLevel.High,
-            Priority = 90,
+            Id = "protect_user_dirs",
+            Name = "User Personal Folders",
+            Description = "Protect Desktop, Documents, Pictures, Videos, Music, OneDrive",
+            PathPatterns = ["**\\Desktop\\**", "**\\Documents\\**",
+                          "**\\Pictures\\**", "**\\Videos\\**", "**\\Music\\**", "**\\OneDrive\\**"],
+            Action = ItemAction.Block,
+            Risk = RiskLevel.Critical,
+            Priority = 100,
             Enabled = true
         });
         _rules.Add(new Rule
         {
             Id = "protect_db",
-            Name = "Database Files",
-            Extensions = [".db", ".sqlite", ".mdf", ".ldf", ".env"],
+            Name = "Database & Credentials",
+            Description = "Protect database files and credentials",
+            Extensions = [".db", ".sqlite", ".mdf", ".ldf", ".env", ".pem", ".key", ".pfx"],
             Action = ItemAction.Block,
             Risk = RiskLevel.Critical,
             Priority = 95,

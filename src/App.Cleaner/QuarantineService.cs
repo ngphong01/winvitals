@@ -1,4 +1,5 @@
 using App.Core;
+using App.Storage;
 using App.Storage.Repositories;
 using App.Storage.Services;
 using Microsoft.Extensions.Logging;
@@ -29,7 +30,7 @@ public class QuarantineService : IQuarantineService
         CancellationToken ct = default)
     {
         int count = 0;
-        var quarantineBase = Path.Combine(AppContext.BaseDirectory, "quarantine");
+        var quarantineBase = DatabaseProvider.GetQuarantineDirectory();
 
         foreach (var item in items)
         {

@@ -1,0 +1,299 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ========================================================================= -->
+    <!--  1. COLOR SYSTEM & GRADIENTS                                              -->
+    <!-- ========================================================================= -->
+
+    <!-- Base Surface Colors -->
+    <SolidColorBrush x:Key="AppBackground" Color="#0B0C16"/>
+    <SolidColorBrush x:Key="SidebarBg" Color="#080910"/>
+    <SolidColorBrush x:Key="SurfaceBg" Color="#101222"/>
+    <SolidColorBrush x:Key="SurfaceAlt" Color="#171A30"/>
+
+    <!-- Glass Cards & Borders -->
+    <SolidColorBrush x:Key="CardBg" Color="#131528"/>
+    <SolidColorBrush x:Key="CardBgHover" Color="#1A1D36"/>
+    <SolidColorBrush x:Key="CardBorder" Color="#282B4E"/>
+    <SolidColorBrush x:Key="CardBorderHover" Color="#6C8CF0"/>
+
+    <!-- Brand Accents -->
+    <SolidColorBrush x:Key="AccentPrimary" Color="#6C8CF0"/>
+    <SolidColorBrush x:Key="AccentLight" Color="#8EA7F5"/>
+    <SolidColorBrush x:Key="AccentGlow" Color="#336C8CF0"/>
+    <SolidColorBrush x:Key="AccentDark" Color="#4A65C5"/>
+
+    <!-- Status Colors -->
+    <SolidColorBrush x:Key="SuccessGreen" Color="#3ECF8E"/>
+    <SolidColorBrush x:Key="SuccessBg" Color="#143022"/>
+    <SolidColorBrush x:Key="WarningGold" Color="#F5A623"/>
+    <SolidColorBrush x:Key="WarningBg" Color="#332510"/>
+    <SolidColorBrush x:Key="DangerRed" Color="#F85149"/>
+    <SolidColorBrush x:Key="DangerBg" Color="#331418"/>
+    <SolidColorBrush x:Key="InfoBlue" Color="#38BDF8"/>
+    <SolidColorBrush x:Key="InfoBg" Color="#102838"/>
+
+    <!-- Typography Brushes -->
+    <SolidColorBrush x:Key="TextPrimary" Color="#F1F3F9"/>
+    <SolidColorBrush x:Key="TextSecondary" Color="#9498B8"/>
+    <SolidColorBrush x:Key="TextMuted" Color="#5A5E82"/>
+    <SolidColorBrush x:Key="TextDisabled" Color="#404360"/>
+
+    <!-- Gradients -->
+    <LinearGradientBrush x:Key="GradientPrimary" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#6C8CF0" Offset="0.0"/>
+        <GradientStop Color="#A07CF0" Offset="1.0"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="GradientSuccess" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#3ECF8E" Offset="0.0"/>
+        <GradientStop Color="#2BB89B" Offset="1.0"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="GradientWarning" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#F5A623" Offset="0.0"/>
+        <GradientStop Color="#E67E22" Offset="1.0"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="GradientDanger" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#F85149" Offset="0.0"/>
+        <GradientStop Color="#DA3633" Offset="1.0"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="GradientGlass" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#181B34" Offset="0.0"/>
+        <GradientStop Color="#101222" Offset="1.0"/>
+    </LinearGradientBrush>
+
+
+    <!-- ========================================================================= -->
+    <!--  2. TYPOGRAPHY STYLES                                                     -->
+    <!-- ========================================================================= -->
+
+    <Style x:Key="TextHeaderLarge" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="24"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+        <Setter Property="Margin" Value="0,0,0,4"/>
+    </Style>
+
+    <Style x:Key="TextHeaderMedium" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="18"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+        <Setter Property="Margin" Value="0,0,0,4"/>
+    </Style>
+
+    <Style x:Key="TextSubheader" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+        <Setter Property="Margin" Value="0,0,0,16"/>
+    </Style>
+
+    <Style x:Key="TextSectionTitle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+        <Setter Property="Margin" Value="0,16,0,8"/>
+    </Style>
+
+
+    <!-- ========================================================================= -->
+    <!--  3. CARDS & CONTAINERS                                                    -->
+    <!-- ========================================================================= -->
+
+    <Style x:Key="GlassCard" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource CardBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource CardBorder}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="Padding" Value="16"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect BlurRadius="20" ShadowDepth="4" Opacity="0.2" Color="#000000"/>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="GlassCardHover" TargetType="Border" BasedOn="{StaticResource GlassCard}">
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="BorderBrush" Value="{StaticResource CardBorderHover}"/>
+                <Setter Property="Background" Value="{StaticResource CardBgHover}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+
+    <!-- ========================================================================= -->
+    <!--  4. BUTTON STYLES                                                         -->
+    <!-- ========================================================================= -->
+
+    <!-- Primary Action Button -->
+    <Style x:Key="BtnPrimary" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource GradientPrimary}"/>
+        <Setter Property="Foreground" Value="#FFFFFF"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="FontSize" Value="12.5"/>
+        <Setter Property="Height" Value="36"/>
+        <Setter Property="Padding" Value="18,0"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="8"
+                            Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Opacity" Value="0.9"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="border" Property="Opacity" Value="0.75"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="border" Property="Opacity" Value="0.4"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Secondary Outline Button -->
+    <Style x:Key="BtnSecondary" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource SurfaceAlt}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource CardBorder}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="FontSize" Value="12.5"/>
+        <Setter Property="Height" Value="36"/>
+        <Setter Property="Padding" Value="16,0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="border" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="#222644"/>
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentPrimary}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="#1A1D36"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="border" Property="Opacity" Value="0.4"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Success Accent Button -->
+    <Style x:Key="BtnSuccess" TargetType="Button" BasedOn="{StaticResource BtnPrimary}">
+        <Setter Property="Background" Value="{StaticResource GradientSuccess}"/>
+        <Setter Property="Foreground" Value="#080910"/>
+    </Style>
+
+    <!-- Danger Accent Button -->
+    <Style x:Key="BtnDanger" TargetType="Button" BasedOn="{StaticResource BtnPrimary}">
+        <Setter Property="Background" Value="{StaticResource GradientDanger}"/>
+        <Setter Property="Foreground" Value="#FFFFFF"/>
+    </Style>
+
+
+    <!-- ========================================================================= -->
+    <!--  5. CONTROL STYLES (CheckBox, ProgressBar, Custom ScrollBar)              -->
+    <!-- ========================================================================= -->
+
+    <!-- Modern CheckBox -->
+    <Style x:Key="ModernCheckBox" TargetType="CheckBox">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+        <Setter Property="FontSize" Value="12.5"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border x:Name="chkBorder" Width="18" Height="18" CornerRadius="5"
+                                Background="{StaticResource SurfaceAlt}" BorderBrush="{StaticResource CardBorder}"
+                                BorderThickness="1.5" Margin="0,0,8,0">
+                            <Path x:Name="chkMark" Data="M3,9 L7,13 L15,4" Stroke="{StaticResource AccentPrimary}"
+                                  StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                  Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ContentPresenter VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="chkBorder" Property="Background" Value="{StaticResource AccentGlow}"/>
+                            <Setter TargetName="chkBorder" Property="BorderBrush" Value="{StaticResource AccentPrimary}"/>
+                            <Setter TargetName="chkMark" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="chkBorder" Property="BorderBrush" Value="{StaticResource AccentLight}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Modern Animated ProgressBar -->
+    <Style x:Key="ModernProgressBar" TargetType="ProgressBar">
+        <Setter Property="Height" Value="6"/>
+        <Setter Property="Background" Value="{StaticResource SurfaceAlt}"/>
+        <Setter Property="Foreground" Value="{StaticResource GradientPrimary}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ProgressBar">
+                    <Grid x:Name="TemplateRoot">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="3" SnapsToDevicePixels="True"/>
+                        <Rectangle x:Name="PART_Track"/>
+                        <Decorator x:Name="PART_Indicator" HorizontalAlignment="Left">
+                            <Border x:Name="Indicator" Background="{TemplateBinding Foreground}" CornerRadius="3"/>
+                        </Decorator>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Badges -->
+    <Style x:Key="ModernBadge" TargetType="Border">
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Padding" Value="8,3,8,3"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="BadgeSafe" TargetType="Border" BasedOn="{StaticResource ModernBadge}">
+        <Setter Property="Background" Value="{StaticResource SuccessBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource SuccessGreen}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+
+    <Style x:Key="BadgeWarning" TargetType="Border" BasedOn="{StaticResource ModernBadge}">
+        <Setter Property="Background" Value="{StaticResource WarningBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource WarningGold}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+
+    <Style x:Key="BadgeDanger" TargetType="Border" BasedOn="{StaticResource ModernBadge}">
+        <Setter Property="Background" Value="{StaticResource DangerBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource DangerRed}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+
+</ResourceDictionary>

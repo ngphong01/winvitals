@@ -25,6 +25,7 @@
     <AssemblyVersion>2.0.0.0</AssemblyVersion>
     <Description>Windows Health Manager - Trình dọn dẹp thông minh cho developer và power user Việt Nam</Description>
     <Copyright>© 2025 Đào Văn Phong — MIT License</Copyright>
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">

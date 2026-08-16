@@ -47,6 +47,7 @@ public interface IStorageProvider
     Task<List<QuarantineItem>> GetQuarantineItemsAsync();
     Task<bool> RemoveQuarantineItemAsync(int id);
     Task<bool> UpdateQuarantineStatusAsync(int id, QuarantineStatus status);
+    Task<int> MigrateLegacyQuarantineDirectoryAsync(CancellationToken ct = default);
 
     // Settings
     Task<string?> GetSettingAsync(string key);

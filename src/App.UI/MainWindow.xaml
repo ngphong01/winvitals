@@ -83,8 +83,9 @@
         <Style x:Key="NavSection" TargetType="TextBlock">
             <Setter Property="FontSize" Value="9.5"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
             <Setter Property="Margin" Value="22,18,0,6"/>
+            <Setter Property="Opacity" Value="0.75"/>
         </Style>
 
         <!-- ===== CARD STYLES ===== -->
@@ -365,37 +366,37 @@
                 <!-- Nav Items -->
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden">
                     <StackPanel Margin="0,6,0,0">
-                        <TextBlock Text="MAIN" Style="{StaticResource NavSection}"/>
+                        <TextBlock Text="CHÍNH" Style="{StaticResource NavSection}"/>
                         <Button x:Name="BtnDashboard" Style="{StaticResource NavBtn}" Click="Nav_Click" Tag="Dashboard">
-                            <Button.Content><StackPanel Orientation="Horizontal"><TextBlock Text="◈  "/><TextBlock Text="Bảng Điều Khiển"/></StackPanel></Button.Content>
+                            <Button.Content><StackPanel Orientation="Horizontal"><TextBlock Text="🏠  " FontSize="13"/><TextBlock Text="Bảng Điều Khiển"/></StackPanel></Button.Content>
                         </Button>
                         <Button x:Name="BtnDisk" Style="{StaticResource NavBtn}" Click="Nav_Click" Tag="Disk">
-                            <Button.Content><StackPanel Orientation="Horizontal"><TextBlock Text="▣  "/><TextBlock Text="Phân Tích Ổ Đĩa"/></StackPanel></Button.Content>
+                            <Button.Content><StackPanel Orientation="Horizontal"><TextBlock Text="📊  " FontSize="13"/><TextBlock Text="Phân Tích Ổ Đĩa"/></StackPanel></Button.Content>
                         </Button>
                         <Button x:Name="BtnCleaner" Style="{StaticResource NavBtn}" Click="Nav_Click" Tag="Cleaner">
-                            <Button.Content><StackPanel Orientation="Horizontal"><TextBlock Text="◇  "/><TextBlock Text="Dọn Dẹp"/></StackPanel></Button.Content>
+                            <Button.Content><StackPanel Orientation="Horizontal"><TextBlock Text="🧹  " FontSize="13"/><TextBlock Text="Dọn Dẹp"/></StackPanel></Button.Content>
                         </Button>
 
                         <TextBlock Text="CÔNG CỤ" Style="{StaticResource NavSection}"/>
                         <Button x:Name="BtnFileTools" Style="{StaticResource NavBtn}" Click="Nav_Click" Tag="FileTools">
-                            <Button.Content><StackPanel Orientation="Horizontal"><TextBlock Text="📁  "/><TextBlock Text="Công Cụ File"/></StackPanel></Button.Content>
+                            <Button.Content><StackPanel Orientation="Horizontal"><TextBlock Text="📁  " FontSize="13"/><TextBlock Text="Công Cụ File"/></StackPanel></Button.Content>
                         </Button>
                         <Button x:Name="BtnDevTools" Style="{StaticResource NavBtn}" Click="Nav_Click" Tag="DevTools">
-                            <Button.Content><StackPanel Orientation="Horizontal"><TextBlock Text="🛠  "/><TextBlock Text="Dev Tools"/></StackPanel></Button.Content>
+                            <Button.Content><StackPanel Orientation="Horizontal"><TextBlock Text="⚙️  " FontSize="13"/><TextBlock Text="Dev Tools"/></StackPanel></Button.Content>
                         </Button>
                         <Button x:Name="BtnPerf" Style="{StaticResource NavBtn}" Click="Nav_Click" Tag="Performance">
-                            <Button.Content><StackPanel Orientation="Horizontal"><TextBlock Text="◉  "/><TextBlock Text="Hiệu Năng"/></StackPanel></Button.Content>
+                            <Button.Content><StackPanel Orientation="Horizontal"><TextBlock Text="⚡  " FontSize="13"/><TextBlock Text="Hiệu Năng"/></StackPanel></Button.Content>
                         </Button>
                         <Button x:Name="BtnQuarantine" Style="{StaticResource NavBtn}" Click="Nav_Click" Tag="Quarantine">
-                            <Button.Content><StackPanel Orientation="Horizontal"><TextBlock Text="◻  "/><TextBlock Text="Cách Ly"/></StackPanel></Button.Content>
+                            <Button.Content><StackPanel Orientation="Horizontal"><TextBlock Text="🛡  " FontSize="13"/><TextBlock Text="Cách Ly"/></StackPanel></Button.Content>
                         </Button>
 
                         <TextBlock Text="HỆ THỐNG" Style="{StaticResource NavSection}"/>
                         <Button x:Name="BtnAutoClean" Style="{StaticResource NavBtn}" Click="Nav_Click" Tag="AutoClean">
-                            <Button.Content><StackPanel Orientation="Horizontal"><TextBlock Text="⏰  "/><TextBlock Text="Tự Động và Lịch"/></StackPanel></Button.Content>
+                            <Button.Content><StackPanel Orientation="Horizontal"><TextBlock Text="🕐  " FontSize="13"/><TextBlock Text="Tự Động và Lịch"/></StackPanel></Button.Content>
                         </Button>
                         <Button x:Name="BtnSettings" Style="{StaticResource NavBtn}" Click="Nav_Click" Tag="Settings">
-                            <Button.Content><StackPanel Orientation="Horizontal"><TextBlock Text="⚙  "/><TextBlock Text="Cài Đặt &amp; Quy Tắc"/></StackPanel></Button.Content>
+                            <Button.Content><StackPanel Orientation="Horizontal"><TextBlock Text="🔧  " FontSize="13"/><TextBlock Text="Cài Đặt &amp; Quy Tắc"/></StackPanel></Button.Content>
                         </Button>
                     </StackPanel>
                 </ScrollViewer>
@@ -435,34 +436,44 @@
                                       Text="Tổng quan hệ thống — sức khỏe, dung lượng và hoạt động gần đây"/>
                         </StackPanel>
 
-                        <!-- Cleanup Potential Banner -->
-                        <Border x:Name="CleanupPotentialBanner" Style="{StaticResource Card}"
-                                Padding="16,14" Margin="0,0,0,12" Cursor="Hand"
+                        <!-- Cleanup Potential Banner — gradient background, synced with health score -->
+                        <Border x:Name="CleanupPotentialBanner" CornerRadius="12"
+                                Padding="18,14" Margin="0,0,0,14" Cursor="Hand"
                                 MouseLeftButtonDown="CleanupPotential_Click">
+                            <Border.Background>
+                                <LinearGradientBrush x:Name="BannerGradient" StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop x:Name="BannerGrad0" Color="#2A1E08" Offset="0"/>
+                                    <GradientStop x:Name="BannerGrad1" Color="#3A2806" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Border.BorderBrush>
+                                <SolidColorBrush x:Name="BannerBorderColor" Color="#DDAF68"/>
+                            </Border.BorderBrush>
+                            <Border.BorderThickness>1.5</Border.BorderThickness>
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <Border Grid.Column="0" CornerRadius="8" Width="42" Height="42"
-                                        Background="#1A3428" Margin="0,0,14,0">
-                                    <TextBlock Text="⚡" FontSize="22"
+                                <Border x:Name="CleanupPotentialBannerIcon" Grid.Column="0" CornerRadius="10" Width="44" Height="44"
+                                        Background="#3A2A06" Margin="0,0,16,0">
+                                    <TextBlock x:Name="CleanupPotentialBannerIconText" Text="⚡" FontSize="24"
                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                     <TextBlock x:Name="TxtCleanableEstimate" Text="Đang ước tính..."
                                                FontSize="15" FontWeight="Bold"
-                                               Foreground="{StaticResource Success}"/>
+                                               Foreground="{StaticResource Warning}"/>
                                     <TextBlock x:Name="TxtCleanableDetail"
                                                Text="Từ temp, cache, recycle bin, Windows Update..."
-                                               FontSize="11" Foreground="{StaticResource TextMuted}"
-                                               TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
+                                               FontSize="11" Foreground="{StaticResource TextSecondary}"
+                                               TextTrimming="CharacterEllipsis" Margin="0,3,0,0"/>
                                 </StackPanel>
                                 <Button Grid.Column="2" x:Name="BtnSuaNgay"
-                                        Content="🛠  Sửa Ngay"
+                                        Content="✖  Sửa Ngay"
                                         Style="{StaticResource DangerBtn}"
-                                        Width="120" Height="34"
+                                        Width="120" Height="36"
                                         VerticalAlignment="Center"
                                         Click="OneClickFix_Click"/>
                             </Grid>
@@ -487,68 +498,84 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <!-- Health Score -->
-                            <Border Grid.Column="0" Style="{StaticResource CardMetric}" Margin="0,0,8,0">
+                            <!-- Health Score — with donut ring -->
+                            <Border Grid.Column="0" Style="{StaticResource GlassCard}" Margin="0,0,8,0">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="4"/>
                                         <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" CornerRadius="2" Margin="0,0,16,0"
-                                            Background="{StaticResource GradientSuccess}"/>
-                                    <StackPanel Grid.Column="1">
-                                        <TextBlock Text="SỨC KHỎE HỆ THỐNG" FontSize="10"
-                                                   FontWeight="Bold"
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                        <TextBlock Text="SỨC KHỎE HỆ THỐNG" FontSize="10" FontWeight="Bold"
                                                    Foreground="{StaticResource TextMuted}"/>
-                                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                                            <TextBlock x:Name="TxtScore" FontSize="34" FontWeight="Bold"
-                                                       Foreground="{StaticResource Success}"/>
-                                            <TextBlock Text=" /100" FontSize="14" Margin="6,8,0,0"
+                                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                            <TextBlock x:Name="TxtScore" FontSize="36" FontWeight="Bold"
+                                                       Foreground="{StaticResource Danger}"/>
+                                            <TextBlock Text=" /100" FontSize="13" Margin="4,10,0,0"
                                                        Foreground="{StaticResource TextMuted}"/>
                                         </StackPanel>
-                                        <TextBlock x:Name="TxtHealthLabel" Text="Tốt" FontSize="13"
+                                        <TextBlock x:Name="TxtHealthLabel" Text="Kém" FontSize="13"
                                                    FontWeight="SemiBold" Margin="0,4,0,0"
-                                                   Foreground="{StaticResource Success}"/>
+                                                   Foreground="{StaticResource Danger}"/>
                                     </StackPanel>
+                                    <!-- Circular ring indicator -->
+                                    <Grid Grid.Column="1" Width="70" Height="70" Margin="8,0,0,0">
+                                        <Ellipse Stroke="#2A2A50" StrokeThickness="8" Fill="Transparent"/>
+                                        <Ellipse x:Name="HealthRingEllipse"
+                                                 Stroke="#E08050" StrokeThickness="8" Fill="Transparent"
+                                                 StrokeDashArray="220 220"
+                                                 RenderTransformOrigin="0.5,0.5">
+                                            <Ellipse.RenderTransform>
+                                                <RotateTransform Angle="-90"/>
+                                            </Ellipse.RenderTransform>
+                                        </Ellipse>
+                                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <TextBlock x:Name="TxtRingValue" Text="—" FontSize="14" FontWeight="Bold"
+                                                       Foreground="{StaticResource Warning}"
+                                                       HorizontalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Grid>
                                 </Grid>
                             </Border>
 
-                            <!-- Total Freed -->
-                            <Border Grid.Column="1" Style="{StaticResource CardMetric}" Margin="8,0,8,0">
+                            <!-- Total Freed — with illustration emoji -->
+                            <Border Grid.Column="1" Style="{StaticResource GlassCard}" Margin="8,0,8,0">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="4"/>
                                         <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" CornerRadius="2" Margin="0,0,16,0"
-                                            Background="{StaticResource GradientAccent}"/>
-                                    <StackPanel Grid.Column="1">
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                         <TextBlock Text="ĐÃ GIẢI PHÓNG" FontSize="10" FontWeight="Bold"
                                                    Foreground="{StaticResource TextMuted}"/>
-                                        <TextBlock x:Name="TxtTotalFreed" FontSize="24" FontWeight="Bold"
+                                        <TextBlock x:Name="TxtTotalFreed" FontSize="26" FontWeight="Bold"
                                                    Foreground="{StaticResource TextPrimary}" Margin="0,8,0,0"/>
                                         <TextBlock Text="Tổng dung lượng đã dọn" FontSize="11"
-                                                   Foreground="{StaticResource TextMuted}" Margin="0,2,0,0"/>
+                                                   Foreground="{StaticResource TextMuted}" Margin="0,3,0,0"/>
                                     </StackPanel>
+                                    <TextBlock Grid.Column="1" Text="🚢" FontSize="44"
+                                               VerticalAlignment="Center" Margin="8,0,0,0" Opacity="0.85"/>
                                 </Grid>
                             </Border>
 
-                            <!-- Quarantine -->
-                            <Border Grid.Column="2" Style="{StaticResource CardMetric}" Margin="8,0,0,0">
+                            <!-- Quarantine — with illustration emoji -->
+                            <Border Grid.Column="2" Style="{StaticResource GlassCard}" Margin="8,0,0,0">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="4"/>
                                         <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" CornerRadius="2" Margin="0,0,16,0"
-                                            Background="{StaticResource GradientWarning}"/>
-                                    <StackPanel Grid.Column="1">
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                         <TextBlock Text="ĐANG CÁCH LY" FontSize="10" FontWeight="Bold"
                                                    Foreground="{StaticResource TextMuted}"/>
-                                        <TextBlock x:Name="TxtQuarantinedDash" FontSize="24" FontWeight="Bold"
+                                        <TextBlock x:Name="TxtQuarantinedDash" FontSize="26" FontWeight="Bold"
                                                    Foreground="{StaticResource Warning}" Margin="0,8,0,0"/>
                                         <TextBlock Text="Items trong quarantine" FontSize="11"
-                                                   Foreground="{StaticResource TextMuted}" Margin="0,2,0,0"/>
+                                                   Foreground="{StaticResource TextMuted}" Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0">
+                                        <TextBlock Text="☣" FontSize="30" Foreground="{StaticResource Warning}" Opacity="0.8"/>
+                                        <TextBlock Text="🗑" FontSize="22" HorizontalAlignment="Center" Opacity="0.7"/>
                                     </StackPanel>
                                 </Grid>
                             </Border>
@@ -562,16 +589,16 @@
                             </Grid.ColumnDefinitions>
 
                             <!-- Issues -->
-                            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="18" Margin="0,0,8,0">
+                            <Border Grid.Column="0" Style="{StaticResource GlassCard}" Padding="18" Margin="0,0,8,0">
                                 <StackPanel>
-                                    <TextBlock Text=" VẤN ĐỀ CẦN CHÚ Ý" FontSize="12" FontWeight="Bold"
-                                              Foreground="{StaticResource Danger}"/>
+                                    <TextBlock Text="⚠  CẢNH BÁO QUAN TRỌNG" FontSize="12" FontWeight="Bold"
+                                              Foreground="{StaticResource Warning}"/>
                                     <ItemsControl x:Name="IssuesList" Margin="0,8,0,0"/>
                                 </StackPanel>
                             </Border>
 
                             <!-- Activity -->
-                            <Border Grid.Column="1" Style="{StaticResource Card}" Padding="18" Margin="8,0,0,0">
+                            <Border Grid.Column="1" Style="{StaticResource GlassCard}" Padding="18" Margin="8,0,0,0">
                                 <StackPanel>
                                     <TextBlock Text=" HOẠT ĐỘNG GẦN ĐÂY" FontSize="12" FontWeight="Bold"
                                               Foreground="{StaticResource Accent}"/>
